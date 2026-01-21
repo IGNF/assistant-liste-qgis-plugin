@@ -1,0 +1,9 @@
+# Assistant liste
+
+Cet assistant permet de gérer des listes d'entités pouvant être de type différents
+
+
+
+Prérequis : Le "plugin\_maitre" doit obligatoirement être installé.
+Lien vers le plugin maître : [maitre-qgis-plugin sur GitHub](https://github.com/IGNF/maitre-qgis-plugin)
+
