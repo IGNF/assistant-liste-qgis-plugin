@@ -26,8 +26,10 @@ from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget, QDialog
 import os.path
 import json
 
+from qgis.core import QgsVectorLayer
+
 from .assistant_liste_dialog import ListeDialog
-from .select_all_layer import *
+# from .select_all_layer import *
 from .liste_dlg import *
 
 TITRE = "Assistant liste v0.0.1"
@@ -50,7 +52,7 @@ class AssistantListe:
 
     def inittablewidget(self):
         self.dlg.tableWidget.setColumnCount(2)
-        self.dlg.tableWidget.setHorizontalHeaderLabels(["Nom", "Nb entités"])
+        self.dlg.tableWidget.setHorizontalHeaderLabels(["Listes", "Nb entités"])
         self.dlg.tableWidget.setColumnWidth(0, 190)
         self.dlg.tableWidget.setColumnWidth(1, 60)
         self.dlg.tableWidget.verticalHeader().setDefaultSectionSize(10)
@@ -174,9 +176,13 @@ class AssistantListe:
     def suppr_list_sel(self):
         items = self.dlg.tableWidget.selectedItems()
         if items:
-            # supprime
-            ligne = items[0].row()
-            self.dlg.tableWidget.removeRow(ligne)
+            for item in items:
+                # on supprime le fichier AVANT a ligne
+                os.remove(os.path.join(self.dossier_listes, f"{item.text()}.json"))
+                # supprime la ligne
+                ligne = item.row()
+                self.dlg.tableWidget.removeRow(ligne)
+
 
     # sélectionne toutes les entités issues de la liste sélectionnée
     def set_sel_from_list(self):
@@ -250,8 +256,8 @@ class AssistantListe:
         # double clic dans une cellule
         self.dlg.tableWidget.cellDoubleClicked.connect(self.double_clic_liste)
 
-        tool = RectangleSelectAllLayers(self.iface.mapCanvas())
-        self.iface.mapCanvas().setMapTool(tool)
+        # tool = RectangleSelectAllLayers(self.iface.mapCanvas())
+        # self.iface.mapCanvas().setMapTool(tool)
 
 
         self.inittablewidget()
