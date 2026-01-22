@@ -15,10 +15,10 @@ class DialogFiltre(QObject):
         self.all_is_checked = False
 
     def ini_list_view(self):
-        # je check ou pas les colonnes en fct des colonnes masquées du dlg_liste (donc apes filtre)
+        # je check ou pas les colonnes en fct des colonnes masquées du dialog (donc apes filtre)
         entete_colonne = []
         for col in range(self.parent.model.columnCount()):
-            if not self.parent.dlg_liste.tableView.isColumnHidden(col):
+            if not self.parent.dialog.tableView.isColumnHidden(col):
                 entete_colonne.append(self.parent.model.headerData(col, Qt.Horizontal))
 
         layer,champs = self.parent.get_structure_layer()
