@@ -21,8 +21,10 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget, QDialog
+import shutil
+
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget, QDialog, QMessageBox, QFileDialog
 import os.path
 import json
 
@@ -31,8 +33,7 @@ from qgis.core import QgsVectorLayer
 from .assistant_liste_dialog import ListeDialog
 # from .select_all_layer import *
 from .liste_dlg import *
-
-TITRE = "Assistant liste v0.0.1"
+from .constantes import *
 
 class AssistantListe:
     def __init__(self, iface):
@@ -45,7 +46,6 @@ class AssistantListe:
         # instanciation de la class DialogListe
         self.dlg_liste = DialogListe(self)
 
-        self.dossier_listes = os.path.join(os.path.dirname(__file__), "LISTES")
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
@@ -60,19 +60,33 @@ class AssistantListe:
         # Rendre toutes les cellules non éditables
         self.dlg.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
 
-    def creerliste(self):
-        nom = self.dlg.lineEditNewList.text()
-        if nom == "":
-            return
+    def creerliste(self,list_selection = False):
+        if list_selection:
+            nom = NOM_LISTE_SELECTION
+        else:
+            nom = self.dlg.lineEditNewList.text()
+            if nom == "" or nom == NOM_LISTE_SELECTION:
+                text_warning = "Le nom ne doit pas être vide"
+                QMessageBox.warning(self.dlg,"Avertissement",text_warning)
+                return
         item_nom = QTableWidgetItem(nom)
 
-        item_nb = QTableWidgetItem("0")
-        # rendre non sélectionnable
-        item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
+        # si le nom existe deja -->return
+        if nom in self.get_nom_all_liste():
+            text_warning = "Ce nom existe déjà"
+            QMessageBox.warning(self.dlg, "Avertissement", text_warning)
+            return
 
+        # rendre non sélectionnable la 2ieme colonne (nb entités)
+        item_nb = QTableWidgetItem("0")
+        item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
         item_nb.setTextAlignment(Qt.AlignCenter)
 
-        nbligne = self.dlg.tableWidget.rowCount()
+        if nom == NOM_LISTE_SELECTION:
+            nbligne = 0
+        else:
+            nbligne = self.dlg.tableWidget.rowCount()
+
         self.dlg.tableWidget.insertRow(nbligne)
         self.dlg.tableWidget.setItem(nbligne, 0, item_nom)
         self.dlg.tableWidget.setItem(nbligne, 1, item_nb)
@@ -81,8 +95,11 @@ class AssistantListe:
         # creer un json vide mais avec la structure
         self.initjsonlist(nom)
 
+        # initialiser la liste "selection"
+        self.set_list_from_sel(True)
+
     def get_dico_from_json(self,nom_liste):
-        with open(os.path.join(self.dossier_listes, f"{nom_liste}.json"), "r", encoding="utf-8") as f:
+        with open(os.path.join(DOSSIER_LISTE, f"{nom_liste}.json"), "r", encoding="utf-8") as f:
             data = json.load(f)
         return data
 
@@ -92,6 +109,14 @@ class AssistantListe:
             return items[0].text()
         return None
 
+    def get_nom_all_liste(self):
+        noms = []
+        for row in range(self.dlg.tableWidget.rowCount()):
+            item = self.dlg.tableWidget.item(row, 0)  # 0 → première colonne
+            if item is not None:
+                noms.append(item.text())
+        return noms
+
     def get_index_list_sel(self):
         indexes = self.dlg.tableWidget.selectedIndexes()
         if indexes:
@@ -100,8 +125,8 @@ class AssistantListe:
         return None
 
     def get_all_json(self):
-        if os.path.exists(self.dossier_listes):
-            self.fichiers_json = [f for f in os.listdir(self.dossier_listes) if f.endswith(".json")]
+        if os.path.exists(DOSSIER_LISTE):
+            self.fichiers_json = [f for f in os.listdir(DOSSIER_LISTE) if f.endswith(".json")]
             return self.fichiers_json
         else:
             print("Le dossier LISTES n'existe pas")
@@ -112,12 +137,15 @@ class AssistantListe:
             # on ajoute toutes les listes (json) dans le tablewidget
             for fic in self.get_all_json():
                 nom_sans_ext, ext = os.path.splitext(fic)
+                # on ajoute pas une 2ieme fois la liste sélection (deja fait avec creerliste(True))
+                if nom_sans_ext == NOM_LISTE_SELECTION:
+                    continue
                 item_fic = QTableWidgetItem(nom_sans_ext)
                 self.dlg.tableWidget.insertRow(0)
                 self.dlg.tableWidget.setItem(0, 0, item_fic)
 
                 # Charger le fichier
-                with open(os.path.join(self.dossier_listes,fic), "r", encoding="utf-8") as f:
+                with open(os.path.join(DOSSIER_LISTE,fic), "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 # Nombre d'éléments (clés dans le dictionnaire)
@@ -131,7 +159,7 @@ class AssistantListe:
     # créer un json vide pour chaque liste crée
     def initjsonlist(self,nom_list):
         dico_vide = {}
-        fichier_json = os.path.join(self.dossier_listes, f"{nom_list}.json")
+        fichier_json = os.path.join(DOSSIER_LISTE, f"{nom_list}.json")
         with open(fichier_json, "w", encoding="utf-8") as f:
             json.dump(dico_vide, f, indent=2, ensure_ascii=False)
 
@@ -150,8 +178,8 @@ class AssistantListe:
         # on vide le tablewidget
         self.dlg.tableWidget.setRowCount(0)
         # on supprime tous les json du dossier LISTES
-        for f in os.listdir(self.dossier_listes):
-            chemin_fichier = os.path.join(self.dossier_listes, f)
+        for f in os.listdir(DOSSIER_LISTE):
+            chemin_fichier = os.path.join(DOSSIER_LISTE, f)
             # Supprime seulement les fichiers (évite les dossiers)
             if os.path.isfile(chemin_fichier) and f.endswith(".json"):
                 os.remove(chemin_fichier)
@@ -161,13 +189,13 @@ class AssistantListe:
         for fic in self.get_all_json():
             # print(fic)
             # Charger le fichier
-            with open(os.path.join(self.dossier_listes, fic), "r", encoding="utf-8") as f:
+            with open(os.path.join(DOSSIER_LISTE, fic), "r", encoding="utf-8") as f:
                 data = json.load(f)
             # Nombre d'éléments (clés dans le dictionnaire)
             nb_elements = sum(len(v) for v in data.values())
             if nb_elements == 0:
                 # on supprime le fichier
-                os.remove(os.path.join(self.dossier_listes, fic))
+                os.remove(os.path.join(DOSSIER_LISTE, fic))
                 # on supprime la ligne du tablewidget
                 nom_sans_ext,ext = os.path.splitext(fic)
                 item = self.dlg.tableWidget.findItems(nom_sans_ext, Qt.MatchExactly)
@@ -178,11 +206,35 @@ class AssistantListe:
         if items:
             for item in items:
                 # on supprime le fichier AVANT a ligne
-                os.remove(os.path.join(self.dossier_listes, f"{item.text()}.json"))
+                os.remove(os.path.join(DOSSIER_LISTE, f"{item.text()}.json"))
                 # supprime la ligne
                 ligne = item.row()
                 self.dlg.tableWidget.removeRow(ligne)
 
+    # mose à jour du nombre d'entité du tablewidget
+    # par lecture du json correspondant
+    # utile si suppression dans la liste correspondante
+    def maj_nb_entites(self, nom_liste):
+        """
+        Met à jour la colonne 'Nb entités' pour la liste nom_liste dans le tableWidget.
+        """
+        # récupérer le dictionnaire JSON
+        fichier_json = os.path.join(DOSSIER_LISTE, f"{nom_liste}.json")
+        if not os.path.exists(fichier_json):
+            nb = 0
+        else:
+            with open(fichier_json, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                nb = sum(len(v) for v in data.values())
+
+        # chercher la ligne correspondante dans le tableWidget
+        items = self.dlg.tableWidget.findItems(nom_liste, Qt.MatchExactly)
+        if items:
+            ligne = items[0].row()
+            item_nb = QTableWidgetItem(str(nb))
+            item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
+            item_nb.setTextAlignment(Qt.AlignCenter)
+            self.dlg.tableWidget.setItem(ligne, 1, item_nb)
 
     # sélectionne toutes les entités issues de la liste sélectionnée
     def set_sel_from_list(self):
@@ -194,7 +246,7 @@ class AssistantListe:
             return
         liste_sel = items[0].text()
         # lecture du json correspondant
-        with open(os.path.join(self.dossier_listes, f"{liste_sel}.json"), "r", encoding="utf-8") as f:
+        with open(os.path.join(DOSSIER_LISTE, f"{liste_sel}.json"), "r", encoding="utf-8") as f:
             data = json.load(f)
             liste_ids = []
             for layer,ids in data.items():
@@ -204,9 +256,13 @@ class AssistantListe:
                     layer[0].selectByIds(ids)
                     # print(f"layer = {layer} -- ids = {ids}")
 
-    def set_list_from_sel(self):
+    def set_list_from_sel(self,liste_selection = False):
         selection_dict = self.get_dico_selection()
-        nom_list_sel = self.get_nom_list_sel()
+        if liste_selection:
+            nom_list_sel = NOM_LISTE_SELECTION
+        else:
+            nom_list_sel = self.get_nom_list_sel()
+
         fichier_json = os.path.join(os.path.dirname(__file__),"LISTES",f"{nom_list_sel}.json")
         # écriture du json
         with open(fichier_json, "w", encoding="utf-8") as f:
@@ -216,7 +272,10 @@ class AssistantListe:
         nb_sel = sum(len(ids) for ids in selection_dict.values())
         item_nb = QTableWidgetItem(str(nb_sel))
         item_nb.setTextAlignment(Qt.AlignCenter)
-        self.dlg.tableWidget.setItem(self.get_index_list_sel(), 1, item_nb)
+        if liste_selection:
+            self.dlg.tableWidget.setItem(0, 1, item_nb)
+        else:
+            self.dlg.tableWidget.setItem(self.get_index_list_sel(), 1, item_nb)
 
     def deselectionne_all(self):
         project = QgsProject.instance()
@@ -226,6 +285,48 @@ class AssistantListe:
 
     def double_clic_liste(self):
         self.dlg_liste.open_liste()
+
+    def on_enter_pressed_lineedit_newlist(self):
+        self.creerliste()
+
+    def importer_liste(self):
+        fichiers, _ = QFileDialog.getOpenFileNames(
+            parent=self.dlg,
+            caption="Sélectionner une liste au format JSON",
+            directory=os.path.expanduser("~"),
+            filter="Fichiers JSON (*.json);;Tous les fichiers (*)"
+        )
+
+        if fichiers:
+            for fic in fichiers:
+                nom_liste_destination = os.path.join(DOSSIER_LISTE, os.path.basename(fic))
+                shutil.copy2(fic, nom_liste_destination)
+
+    def exporter_liste(self):
+        nom_list_sel = self.get_nom_list_sel()
+        if nom_list_sel is None:
+            QMessageBox.warning(self.dlg,"Avertissement","Veuillez choisir une liste")
+            return
+        dossier = QFileDialog.getExistingDirectory(
+            parent=self.dlg,  # widget parent
+            caption=f"Exporter la liste \"{nom_list_sel}\" vers le dossier...",  # titre de la fenêtre
+            options=QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
+        )
+        if dossier:
+            nom_liste_absolu = os.path.join(DOSSIER_LISTE,f"{nom_list_sel}.json")
+            nom_liste_destination = os.path.join(dossier, f"{nom_list_sel}.json")
+            if os.path.exists(nom_liste_absolu):
+                shutil.copy2(nom_liste_absolu, nom_liste_destination)
+
+    def actualiserSelection(self):
+        if not self.dlg.isVisible():
+            return
+        # mise à jour de la liste "sélection" à chaque changement de la sélection
+        self.set_list_from_sel(True)
+
+        if self.dlg_liste.dialogs_liste:
+            self.dlg_liste.dico_json = self.get_dico_from_json(NOM_LISTE_SELECTION)
+            self.dlg_liste.get_sel_in_list()
 
     def initGui(self):
         pass
@@ -240,6 +341,10 @@ class AssistantListe:
             self.first_start = False
             self.dlg = ListeDialog()
 
+        projet = QgsProject.instance()
+        if len(projet.mapLayers()) <= 0:
+            QMessageBox.warning(None,"Avertissement","Aucun projet chargé")
+            return
 
         # show the dialog
         self.dlg = ListeDialog()
@@ -247,21 +352,41 @@ class AssistantListe:
         self.dlg.setWindowTitle(TITRE)
 
         # slot
-        self.dlg.pushButtonCreerList.clicked.connect(self.creerliste)
         self.dlg.pushButtonSuppAllList.clicked.connect(self.suppr_all_list)
         self.dlg.pushButtonSupprEmptyList.clicked.connect(self.suppr_list_vide)
         self.dlg.pushButtonSupprListSel.clicked.connect(self.suppr_list_sel)
         self.dlg.pushButtonListToSelect.clicked.connect(self.set_sel_from_list)
         self.dlg.pushButtonSelectToList.clicked.connect(self.set_list_from_sel)
+        self.dlg.pushButton_importer.clicked.connect(self.importer_liste)
+        self.dlg.pushButton_exporter.clicked.connect(self.exporter_liste)
         # double clic dans une cellule
         self.dlg.tableWidget.cellDoubleClicked.connect(self.double_clic_liste)
+        # appui sur la touche "entrée" sur le line_edit
+        self.dlg.lineEditNewList.returnPressed.connect(self.on_enter_pressed_lineedit_newlist)
+
 
         # tool = RectangleSelectAllLayers(self.iface.mapCanvas())
         # self.iface.mapCanvas().setMapTool(tool)
 
-
         self.inittablewidget()
         self.set_tablewidget_from_all_json()
+        # creation de la liste "Sélection"
+        # a faire APRES self.set_tablewidget_from_all_json()
+        # sinon creation d'une ligne vide
+        self.creerliste(True)
+        # mettre le fond en couleur pour la differencier des autres
+        item = self.dlg.tableWidget.item(0, 0)
+        item.setBackground(QColor(255, 255, 150))
+        font = QFont()
+        font.setBold(True)
+        item.setFont(font)
+
+        # événement de changement de selection pour actualiser la selection des QCombobox
+        try:
+            self.iface.mapCanvas().selectionChanged.disconnect(self.actualiserSelection)
+        except TypeError:
+            pass
+        self.iface.mapCanvas().selectionChanged.connect(self.actualiserSelection)
 
         # Run the dialog event loop
         self.dlg.show()

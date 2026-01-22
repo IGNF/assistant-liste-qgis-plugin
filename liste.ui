@@ -45,6 +45,9 @@
      <property name="midLineWidth">
       <number>0</number>
      </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::DragDrop</enum>
+     </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>

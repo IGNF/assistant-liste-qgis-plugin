@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>360</width>
-    <height>317</height>
+    <height>316</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -32,68 +32,6 @@
   <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="3" column="1">
-      <widget class="QPushButton" name="pushButtonSupprListSel">
-       <property name="maximumSize">
-        <size>
-         <width>30</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Supprime la liste sélectionnée</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>icons/suppr_sel.png</normaloff>icons/suppr_sel.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>25</width>
-         <height>25</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QPushButton" name="pushButtonSupprEmptyList">
-       <property name="maximumSize">
-        <size>
-         <width>30</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Supprime les listes vides</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>icons/suppr_vide.png</normaloff>icons/suppr_vide.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>25</width>
-         <height>25</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QPushButton" name="pushButtonSelectToList">
-       <property name="toolTip">
-        <string>Place la sélection dans la liste sélectionnée</string>
-       </property>
-       <property name="text">
-        <string>Sel -&gt; liste</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="1">
       <widget class="QPushButton" name="pushButtonSuppAllList">
        <property name="maximumSize">
@@ -101,6 +39,9 @@
          <width>30</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
        </property>
        <property name="toolTip">
         <string>Supprime toutes les listes</string>
@@ -117,6 +58,19 @@
          <width>25</width>
          <height>25</height>
         </size>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QPushButton" name="pushButtonListToSelect">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Sélectionne les entités de la liste</string>
+       </property>
+       <property name="text">
+        <string>Liste -&gt; Sel</string>
        </property>
       </widget>
      </item>
@@ -151,32 +105,97 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="pushButtonCreerList">
-         <property name="maximumSize">
-          <size>
-           <width>35</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Créer</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
-     <item row="4" column="1">
-      <widget class="QPushButton" name="pushButtonListToSelect">
+     <item row="7" column="1">
+      <widget class="QPushButton" name="pushButton_importer">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="toolTip">
-        <string>Sélectionne les entités de la liste</string>
+        <string>Importer une liste</string>
        </property>
        <property name="text">
-        <string>Liste -&gt; Sel</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>icons/importer.PNG</normaloff>icons/importer.PNG</iconset>
        </property>
       </widget>
      </item>
-     <item row="1" column="0" rowspan="6">
+     <item row="6" column="1">
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPushButton" name="pushButtonSupprListSel">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Supprime la liste sélectionnée</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>icons/suppr_sel.png</normaloff>icons/suppr_sel.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QPushButton" name="pushButton_exporter">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Exporter une liste</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>icons/exporter.png</normaloff>icons/exporter.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" rowspan="10">
       <widget class="QTableWidget" name="tableWidget">
        <property name="minimumSize">
         <size>
@@ -199,6 +218,48 @@
        <attribute name="verticalHeaderCascadingSectionResizes">
         <bool>false</bool>
        </attribute>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QPushButton" name="pushButtonSelectToList">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Place la sélection dans la liste sélectionnée</string>
+       </property>
+       <property name="text">
+        <string>Sel -&gt; liste</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="pushButtonSupprEmptyList">
+       <property name="maximumSize">
+        <size>
+         <width>30</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>Supprime les listes vides</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>icons/suppr_vide.png</normaloff>icons/suppr_vide.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>25</width>
+         <height>25</height>
+        </size>
+       </property>
       </widget>
      </item>
     </layout>
