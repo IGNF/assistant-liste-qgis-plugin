@@ -324,9 +324,12 @@ class AssistantListe:
         # mise à jour de la liste "sélection" à chaque changement de la sélection
         self.set_list_from_sel(True)
 
+        # uniquement la liste "sélection"
         if self.dlg_liste.dialogs_liste:
-            self.dlg_liste.dico_json = self.get_dico_from_json(NOM_LISTE_SELECTION)
-            self.dlg_liste.get_sel_in_list()
+            for dlg_list_open in self.dlg_liste.dialogs_liste:
+                if dlg_list_open.windowTitle() ==   NOM_LISTE_SELECTION:
+                    self.dlg_liste.dico_json = self.get_dico_from_json(NOM_LISTE_SELECTION)
+                    self.dlg_liste.get_sel_in_list()
 
     def initGui(self):
         pass

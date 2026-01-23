@@ -105,7 +105,6 @@ class DialogListe(QObject):
         return layer_name,liste_champ
 
     def get_sel_in_list(self):
-        print("get_sel_in_list")
         if not self.dialog:
             return
         project = QgsProject.instance()
@@ -181,7 +180,6 @@ class DialogListe(QObject):
         self.parent.iface.actionZoomToSelected().trigger()
 
     def show_filtre(self):
-        print("show_filtre")
         self.filtre = DialogFiltre(self)
         self.filtre.open_dialog()
 
