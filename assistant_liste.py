@@ -77,7 +77,7 @@ class AssistantListe:
             QMessageBox.warning(self.dlg, "Avertissement", text_warning)
             return
 
-        # rendre non sélectionnable la 2ieme colonne (nb entités)
+        # rendre non sélectionnable la 2ᵉ colonne (nb entités)
         item_nb = QTableWidgetItem("0")
         item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
         item_nb.setTextAlignment(Qt.AlignCenter)
@@ -175,14 +175,18 @@ class AssistantListe:
         return selection_dict
 
     def suppr_all_list(self):
-        # on vide le tablewidget
-        self.dlg.tableWidget.setRowCount(0)
-        # on supprime tous les json du dossier LISTES
+        # on reinitilaise le tablewidget en laissant une ligne --> liste selection --> (1)
+        self.dlg.tableWidget.setRowCount(1)
+        # on supprime tous les json du dossier LISTES sauf "Sélection"
+
         for f in os.listdir(DOSSIER_LISTE):
             chemin_fichier = os.path.join(DOSSIER_LISTE, f)
             # Supprime seulement les fichiers (évite les dossiers)
-            if os.path.isfile(chemin_fichier) and f.endswith(".json"):
-                os.remove(chemin_fichier)
+            nom_liste = os.path.splitext(os.path.basename(chemin_fichier))[0]
+            if nom_liste  != NOM_LISTE_SELECTION:
+                if os.path.isfile(chemin_fichier) and f.endswith(".json"):
+                    os.remove(chemin_fichier)
+
 
     def suppr_list_vide(self):
         # on actualise self.fichiers_json
@@ -193,24 +197,31 @@ class AssistantListe:
             # Nombre d'éléments (clés dans le dictionnaire)
             nb_elements = sum(len(v) for v in data.values())
             if nb_elements == 0:
-                # on supprime le fichier
-                os.remove(os.path.join(DOSSIER_LISTE, fic))
-                # on supprime la ligne du tablewidget
-                nom_sans_ext,ext = os.path.splitext(fic)
-                item = self.dlg.tableWidget.findItems(nom_sans_ext, Qt.MatchExactly)
-                self.dlg.tableWidget.removeRow(item[0].row())
+                # on supprime le fichier saus la loste sélection
+                nom_liste = os.path.splitext(os.path.basename(fic))[0]
+                if nom_liste != NOM_LISTE_SELECTION:
+                    os.remove(os.path.join(DOSSIER_LISTE, fic))
+                    # on supprime la ligne du tablewidget
+                    nom_sans_ext,ext = os.path.splitext(fic)
+                    item = self.dlg.tableWidget.findItems(nom_sans_ext, Qt.MatchExactly)
+                    self.dlg.tableWidget.removeRow(item[0].row())
 
     def suppr_list_sel(self):
         items = self.dlg.tableWidget.selectedItems()
         if items:
             for item in items:
-                # on supprime le fichier AVANT a ligne
-                os.remove(os.path.join(DOSSIER_LISTE, f"{item.text()}.json"))
-                # supprime la ligne
-                ligne = item.row()
-                self.dlg.tableWidget.removeRow(ligne)
+                # sauf la liste "selection"
+                nom_liste = os.path.splitext(os.path.basename(item.text()))[0]
+                if nom_liste != NOM_LISTE_SELECTION:
+                    # on supprime le fichier AVANT a ligne
+                    os.remove(os.path.join(DOSSIER_LISTE, f"{item.text()}.json"))
+                    # supprime la ligne
+                    ligne = item.row()
+                    self.dlg.tableWidget.removeRow(ligne)
+                else:
+                    QMessageBox.warning(self.dlg,"Avertissement", "Pas possible de supprimer la liste \"Sélection\"")
 
-    # mose à jour du nombre d'entité du tablewidget
+    # mose à jour du nombre d'entités du tablewidget
     # par lecture du json correspondant
     # utile si suppression dans la liste correspondante
     def maj_nb_entites(self, nom_liste):
@@ -262,7 +273,7 @@ class AssistantListe:
         else:
             nom_list_sel = self.get_nom_list_sel()
 
-        fichier_json = os.path.join(os.path.dirname(__file__),"LISTES",f"{nom_list_sel}.json")
+        fichier_json = os.path.join(DOSSIER_LISTE,f"{nom_list_sel}.json")
         # écriture du json
         with open(fichier_json, "w", encoding="utf-8") as f:
             json.dump(selection_dict, f, indent=2, ensure_ascii=False)
@@ -351,6 +362,10 @@ class AssistantListe:
             QMessageBox.warning(None,"Avertissement","Aucun projet chargé")
             return
 
+        if not os.path.exists(DOSSIER_LISTE):
+            QMessageBox.warning(None,"Avertissement","Le dossier \"LISTES\" n'existe pas")
+            return
+
         # show the dialog
         self.dlg = ListeDialog()
         self.dlg.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -369,17 +384,13 @@ class AssistantListe:
         # appui sur la touche "entrée" sur le line_edit
         self.dlg.lineEditNewList.returnPressed.connect(self.on_enter_pressed_lineedit_newlist)
 
-
-        # tool = RectangleSelectAllLayers(self.iface.mapCanvas())
-        # self.iface.mapCanvas().setMapTool(tool)
-
         self.inittablewidget()
         self.set_tablewidget_from_all_json()
         # creation de la liste "Sélection"
         # a faire APRES self.set_tablewidget_from_all_json()
         # sinon creation d'une ligne vide
         self.creerliste(True)
-        # mettre le fond en couleur pour la differencier des autres
+        # mettre le fond en couleur pour le différencier des autres
         item = self.dlg.tableWidget.item(0, 0)
         item.setBackground(QColor(255, 255, 150))
         font = QFont()

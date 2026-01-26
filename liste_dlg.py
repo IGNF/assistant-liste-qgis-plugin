@@ -1,9 +1,8 @@
 import json
-import os
 from copy import deepcopy
 
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QDialog, QMenu
+from PyQt5.QtWidgets import QMenu
 from qgis.core import QgsProject
 
 from .filtre import *
@@ -15,7 +14,7 @@ class DialogListe(QObject):
     drag_started = pyqtSignal(object, list)
     def __init__(self,plugin_parent=None):
         super().__init__()
-        # dictionnaire des layer contenu dans une liste
+        # dictionnaire des layers contenu dans une liste
         self.nom_liste = None
         self.dico_layer_id_from_liste = {}
         self.dialog = None
@@ -33,12 +32,12 @@ class DialogListe(QObject):
         layers,champs = self.get_structure_layer()
         champs = ["Layer","id"] + list(champs)
 
-        # on passe par la class derivée pour gerer le drag&drop
+        # on passe par la class dérivée pour gérer le drag&drop
         # self.model = QStandardItemModel()
         self.model = ListeModel()
         self.model.dlg = self
 
-        # evenement d'ajout - supprssion dans le model
+        # événement d'ajout — suppression dans le model
         self.model.rowsInserted.connect(self.update_label_nb_entite)
         self.model.rowsRemoved.connect(self.update_label_nb_entite)
 
@@ -70,7 +69,7 @@ class DialogListe(QObject):
         dico_entite_avant_supp = self.parent.get_dico_from_json(nom_liste)
 
         menu = QMenu()
-        delete_action = menu.addAction("Supprimer ou les ligne(s)")
+        delete_action = menu.addAction("Enlever")
         action = menu.exec_(self.dialog.tableView.viewport().mapToGlobal(position))
 
         dico_entite_to_suppr = {}
@@ -101,7 +100,7 @@ class DialogListe(QObject):
             for row in sorted(select_ligne, reverse=True):
                 self.model.removeRow(row)
 
-            # si c'est la liste "selection" on deselectionne en plus
+            # si c'est la liste "selection" on désélectionne en plus
             # if nom_liste == NOM_LISTE_SELECTION:
             #     project = QgsProject.instance()
             #     layer = None
@@ -169,16 +168,26 @@ class DialogListe(QObject):
 
             self.dialog.label_nb_entite.setText(f"Nombre d'entités = {self.model.rowCount()}")
 
+    def double_clic_ligne(self,index_ligne):
+        # on commence par tout désélectionner
+        self.parent.deselectionne_all()
+        project = QgsProject.instance()
+        layer_name = self.model.item(index_ligne.row(), 0).text()
+        layers = project.mapLayersByName(layer_name)
+        layer = layers[0]
+        ident = self.model.item(index_ligne.row(), 1).text()
+        layer.selectByIds([int(ident)])
+        self.parent.iface.showAttributeTable(layer)
+
+        self.parent.iface.setActiveLayer(layer)
+        self.parent.iface.actionZoomToSelected().trigger()
+
     def open_table_attribut(self):
-        selection_model = self.dialog.tableView.selectionModel()
-        # récupérer les indexes sélectionnés
-        # selected_indexes = selection_model.selectedRows()
-        # for index in selected_indexes:
         for ligne in range(self.model.rowCount()):
             # ligne = index.row()
-            # 1ere colonne des lignes sélectionnées --> "layer"
+            # 1ere colonne des lignes sélectionnées → "layer"
             layer = self.model.item(ligne, 0).text()
-            # 2ieme colonne des lignes sélectionnées --> "id"
+            # 2ᵉ colonne des lignes sélectionnées → "id"
             ident = self.model.item(ligne,1).text()
             # si le layer n'est pas encore dans le dictionnaire, on crée une entrée vide
             if layer not in self.dico_layer_id_from_liste:
@@ -186,10 +195,10 @@ class DialogListe(QObject):
 
             self.dico_layer_id_from_liste[layer].append(ident)
 
-        # on commence par tout deselectionner
+        # on commence par tout désélectionner
         self.parent.deselectionne_all()
 
-        # pour chaque layer du dico on sélectionne les entites
+        # pour chaque layer du dico, on sélectionne les entites
         # puis on ouvre la table attributaire de selection
         project = QgsProject.instance()
         layer = None
@@ -200,15 +209,15 @@ class DialogListe(QObject):
             layer.selectByIds([int(fid) for fid in ident])
             self.parent.iface.showAttributeTable(layer)
 
-        # IMPORTANT : le zomm ne se fait que sur les objet du dernier layer trouvé
+        # IMPORTANT : le zoom ne se fait que sur les objets du dernier layer trouvé
         self.parent.iface.setActiveLayer(layer)
         self.parent.iface.actionZoomToSelected().trigger()
 
     def show_filtre(self):
-        self.filtre = DialogFiltre(self)
-        self.filtre.open_dialog()
+        self.dlgfiltre = DialogFiltre(self)
+        self.dlgfiltre.open_dialog()
 
-        colonne_filtre = self.filtre.get_checked_columns()
+        colonne_filtre = self.dlgfiltre.get_checked_columns()
 
         # on masque les entêtes des colonnes qui sont dans le filtre
         for col in range(self.model.columnCount()):
@@ -220,7 +229,6 @@ class DialogListe(QObject):
 
     # entites : liste de dico des champs
     def remove_ligne(self, entites = None):
-        print("remove_ligne")
         # Charger le JSON existant
         fichier_json = os.path.join(DOSSIER_LISTE, f"{self.nom_liste}.json")
         if os.path.exists(fichier_json):
@@ -247,7 +255,6 @@ class DialogListe(QObject):
             for e in entites:
                 e_layer = str(e.get("Layer") or e.get("layer") or "")
                 if e_layer == row_layer and int(e.get("id", 0)) == row_id:
-                    print(e.get("id", 0))
                     self.model.removeRow(ligne)
                     # 🔹 mettre à jour le JSON
                     if row_layer in dico_json and row_id in dico_json[row_layer]:
@@ -256,30 +263,6 @@ class DialogListe(QObject):
                             del dico_json[row_layer]
                     break
         self.dialog.tableView.viewport().update()
-        # self.dialog.tableView.reset()
-        print("nombre de ligne = ",self.model.rowCount())
-        # ============================
-
-
-
-        # headers = [self.model.headerData(col, Qt.Horizontal) for col in range(self.model.columnCount())]
-        # for ligne in reversed(range(self.model.rowCount())):
-        #     # construire un dict pour la ligne actuelle
-        #     row_data = {headers[col]: self.model.item(ligne, col).text() for col in range(self.model.columnCount())}
-        #     for e in entites:
-        #         # comparer toutes les colonnes
-        #         if all(str(e.get(h, "")) == row_data[h] for h in headers):
-        #             self.model.removeRow(ligne)
-        #
-        #             # 🔹 mettre à jour le JSON
-        #             layer = row_data.get("Layer") or row_data.get("layer")
-        #             ident = int(row_data.get("id", 0))
-        #             if layer in dico_json and ident in dico_json[layer]:
-        #                 dico_json[layer].remove(ident)
-        #                 # si plus d'ids pour ce layer, supprimer la clé
-        #                 if not dico_json[layer]:
-        #                     del dico_json[layer]
-        #             break  # ligne supprimée, passer à la suivante
 
         # Réécrire le JSON
         with open(fichier_json, "w", encoding="utf-8") as f:
@@ -292,15 +275,27 @@ class DialogListe(QObject):
         if hasattr(self.parent, "maj_nb_entites"):
             self.parent.maj_nb_entites(self.nom_liste)
 
-
     def open_liste(self):
-        print("open_liste")
+        # récuperation des données de la liste sélectionnée
+        self.nom_liste = self.parent.get_nom_list_sel()
+        self.dico_json = self.parent.get_dico_from_json(self.nom_liste)
+
+        # vérifier si la liste est déjà ouverte
+        for dlg in self.parent.dlg_liste:
+            if dlg.nom_liste == self.nom_liste and dlg.dialog is not None and dlg.dialog.isVisible():
+                # passe la fenetre en premier plan
+                dlg.dialog.raise_()
+                # donne le focus
+                dlg.dialog.activateWindow()
+                return
+
         self.dialog = QDialog()
         loadUi(os.path.join(os.path.dirname(__file__), "liste.ui"), self.dialog)
         self.dialog.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
 
         # slot
         self.dialog.pushButtonOpenTableAttribut.clicked.connect(self.open_table_attribut)
+        self.dialog.tableView.doubleClicked.connect(self.double_clic_ligne)
         self.dialog.pushButtonHide.clicked.connect(self.show_filtre)
 
         # menu contextuel
@@ -310,16 +305,12 @@ class DialogListe(QObject):
         # gestion d'ouverture de plusieurs dialog liste
         # self.dialogs_liste.append(self.dialog)
         self.dialog.setAttribute(Qt.WA_DeleteOnClose)
-        self.dialog.destroyed.connect(lambda _=None, dlg=self: self.parent.dlg_liste.remove(dlg)
-        )
-        # self.dialog.destroyed.connect(lambda _, dlg = self.dialog:self.dialogs_liste.remove(dlg))
+        self.dialog.destroyed.connect(lambda _=None, dlg=self: self.parent.dlg_liste.remove(dlg))
 
         self.dialog.setWindowTitle(self.parent.get_nom_list_sel())
 
-        # recuperation des données de la liste sélectionnée
-        # nom_liste = self.parent.get_nom_list_sel()
-        self.nom_liste = self.parent.get_nom_list_sel()
-        self.dico_json = self.parent.get_dico_from_json(self.nom_liste)
+
+
 
         # initialisation du tableview (creation des colonnes en fonction des champs des layers du json)
         self.init_tableview()

@@ -4,7 +4,7 @@ DOSSIER_LISTE = os.path.join(os.path.dirname(__file__), "LISTES")
 NOM_LISTE_SELECTION = "Sélection"
 
 # Identifier les données pour le drag&drop
-# application : données generique (ni image, ni text... juste generique)
+# application : données génériques (ni image, ni text... juste générique)
 # x- : convention pur dire que ce sont MES données
 # liste-entites : nom de MES données
 MIME_TYPE_LISTE = "application/x-liste-entites"

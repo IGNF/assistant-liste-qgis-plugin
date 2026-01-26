@@ -2,7 +2,7 @@ import os
 
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QDialog, QListWidget
+from PyQt5.QtWidgets import QDialog
 from PyQt5.uic import loadUi
 
 
@@ -72,5 +72,5 @@ class DialogFiltre(QObject):
 
         self.ini_list_view()
 
-        result = self.dlg_filtre.exec_()
+        self.dlg_filtre.exec_()
 
