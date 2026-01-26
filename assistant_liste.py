@@ -44,7 +44,7 @@ class AssistantListe:
         self.nb_elements = None
 
         # instanciation de la class DialogListe
-        self.dlg_liste = DialogListe(self)
+        self.dlg_liste = []
 
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
@@ -187,7 +187,6 @@ class AssistantListe:
     def suppr_list_vide(self):
         # on actualise self.fichiers_json
         for fic in self.get_all_json():
-            # print(fic)
             # Charger le fichier
             with open(os.path.join(DOSSIER_LISTE, fic), "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -283,8 +282,12 @@ class AssistantListe:
             if isinstance(layer, QgsVectorLayer):
                 layer.removeSelection()
 
-    def double_clic_liste(self):
-        self.dlg_liste.open_liste()
+    def double_clic_liste(self,ligne , colonne):
+        if colonne ==1:
+            return
+        dlg = DialogListe(self)
+        self.dlg_liste.append(dlg)
+        dlg.open_liste()
 
     def on_enter_pressed_lineedit_newlist(self):
         self.creerliste()
@@ -325,11 +328,11 @@ class AssistantListe:
         self.set_list_from_sel(True)
 
         # uniquement la liste "sélection"
-        if self.dlg_liste.dialogs_liste:
-            for dlg_list_open in self.dlg_liste.dialogs_liste:
-                if dlg_list_open.windowTitle() ==   NOM_LISTE_SELECTION:
-                    self.dlg_liste.dico_json = self.get_dico_from_json(NOM_LISTE_SELECTION)
-                    self.dlg_liste.get_sel_in_list()
+        # if self.dlg.dialogs_liste:
+        for dlg_list_open  in self.dlg_liste:
+            if dlg_list_open.nom_liste  ==   NOM_LISTE_SELECTION:
+                dlg_list_open.dico_json = self.get_dico_from_json(NOM_LISTE_SELECTION)
+                dlg_list_open.get_sel_in_list()
 
     def initGui(self):
         pass
@@ -342,7 +345,6 @@ class AssistantListe:
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         if self.first_start:
             self.first_start = False
-            self.dlg = ListeDialog()
 
         projet = QgsProject.instance()
         if len(projet.mapLayers()) <= 0:
