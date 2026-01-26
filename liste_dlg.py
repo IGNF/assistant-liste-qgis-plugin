@@ -2,16 +2,21 @@ import json
 import os
 from copy import deepcopy
 
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QMenu
 from qgis.core import QgsProject
 
 from .filtre import *
 from .constantes import *
+from .liste_model import ListeModel
+
 
 class DialogListe(QObject):
+    drag_started = pyqtSignal(object, list)
     def __init__(self,plugin_parent=None):
         super().__init__()
         # dictionnaire des layer contenu dans une liste
+        self.nom_liste = None
         self.dico_layer_id_from_liste = {}
         self.dialog = None
         self.dlg_attr = None
@@ -20,21 +25,40 @@ class DialogListe(QObject):
         self.dialogs_liste = []
         self.parent = plugin_parent
 
+    def start_drag(self):
+        selection = self.get_selected_entites()  # [{"layer":..., "id":...}, ...]
+        self.drag_started.emit(self, selection)
+
     def init_tableview(self):
         layers,champs = self.get_structure_layer()
         champs = ["Layer","id"] + list(champs)
-        self.model = QStandardItemModel()
+
+        # on passe par la class derivée pour gerer le drag&drop
+        # self.model = QStandardItemModel()
+        self.model = ListeModel()
+        self.model.dlg = self
+
+        # evenement d'ajout - supprssion dans le model
+        self.model.rowsInserted.connect(self.update_label_nb_entite)
+        self.model.rowsRemoved.connect(self.update_label_nb_entite)
+
         self.model.setColumnCount(len(champs))
 
         self.model.setHorizontalHeaderLabels(champs)
         self.dialog.tableView.setModel(self.model)
         self.dialog.tableView.resizeColumnsToContents()
-        # colonne "layer" et "id"
+        # colonne "Layer" et "id"
         self.dialog.tableView.setColumnWidth(0, 100)
         self.dialog.tableView.setColumnWidth(1, 50)
         self.dialog.tableView.verticalHeader().setDefaultSectionSize(10)
         self.dialog.tableView.setSortingEnabled(True)
 
+    def update_label_nb_entite(self):
+        if getattr(self, "dialog", None) and hasattr(self.dialog, "label_nb_entite"):
+            try:
+                self.dialog.label_nb_entite.setText(f"Nombre d'entités = {self.model.rowCount()}")
+            except RuntimeError:
+                pass
 
     def show_menu_supp(self, position):
         selection_model = self.dialog.tableView.selectionModel()
@@ -148,9 +172,10 @@ class DialogListe(QObject):
     def open_table_attribut(self):
         selection_model = self.dialog.tableView.selectionModel()
         # récupérer les indexes sélectionnés
-        selected_indexes = selection_model.selectedRows()
-        for index in selected_indexes:
-            ligne = index.row()
+        # selected_indexes = selection_model.selectedRows()
+        # for index in selected_indexes:
+        for ligne in range(self.model.rowCount()):
+            # ligne = index.row()
             # 1ere colonne des lignes sélectionnées --> "layer"
             layer = self.model.item(ligne, 0).text()
             # 2ieme colonne des lignes sélectionnées --> "id"
@@ -193,7 +218,83 @@ class DialogListe(QObject):
             else:
                 self.dialog.tableView.showColumn(col)
 
+    # entites : liste de dico des champs
+    def remove_ligne(self, entites = None):
+        print("remove_ligne")
+        # Charger le JSON existant
+        fichier_json = os.path.join(DOSSIER_LISTE, f"{self.nom_liste}.json")
+        if os.path.exists(fichier_json):
+            with open(fichier_json, "r", encoding="utf-8") as f:
+                dico_json = json.load(f)
+        else:
+            dico_json = {}
+
+        # ============================
+        # Si aucune entité n'est passée, supprimer les lignes sélectionnées
+        if entites is None:
+            entites = []
+            selection_model = self.dialog.tableView.selectionModel()
+            for index in selection_model.selectedRows():
+                ligne = index.row()
+                layer = self.model.item(ligne, 0).text()
+                ident = int(self.model.item(ligne, 1).text())
+                entites.append({"Layer": layer, "id": ident})
+
+        for ligne in reversed(range(self.model.rowCount())):
+            row_layer = self.model.item(ligne, 0).text()
+            row_id = int(self.model.item(ligne, 1).text())
+
+            for e in entites:
+                e_layer = str(e.get("Layer") or e.get("layer") or "")
+                if e_layer == row_layer and int(e.get("id", 0)) == row_id:
+                    print(e.get("id", 0))
+                    self.model.removeRow(ligne)
+                    # 🔹 mettre à jour le JSON
+                    if row_layer in dico_json and row_id in dico_json[row_layer]:
+                        dico_json[row_layer].remove(row_id)
+                        if not dico_json[row_layer]:
+                            del dico_json[row_layer]
+                    break
+        self.dialog.tableView.viewport().update()
+        # self.dialog.tableView.reset()
+        print("nombre de ligne = ",self.model.rowCount())
+        # ============================
+
+
+
+        # headers = [self.model.headerData(col, Qt.Horizontal) for col in range(self.model.columnCount())]
+        # for ligne in reversed(range(self.model.rowCount())):
+        #     # construire un dict pour la ligne actuelle
+        #     row_data = {headers[col]: self.model.item(ligne, col).text() for col in range(self.model.columnCount())}
+        #     for e in entites:
+        #         # comparer toutes les colonnes
+        #         if all(str(e.get(h, "")) == row_data[h] for h in headers):
+        #             self.model.removeRow(ligne)
+        #
+        #             # 🔹 mettre à jour le JSON
+        #             layer = row_data.get("Layer") or row_data.get("layer")
+        #             ident = int(row_data.get("id", 0))
+        #             if layer in dico_json and ident in dico_json[layer]:
+        #                 dico_json[layer].remove(ident)
+        #                 # si plus d'ids pour ce layer, supprimer la clé
+        #                 if not dico_json[layer]:
+        #                     del dico_json[layer]
+        #             break  # ligne supprimée, passer à la suivante
+
+        # Réécrire le JSON
+        with open(fichier_json, "w", encoding="utf-8") as f:
+            json.dump(dico_json, f, indent=2, ensure_ascii=False)
+
+        # Mettre à jour self.dico_json pour que get_sel_in_list() soit correct
+        self.dico_json = dico_json
+
+        # mettre à jour le compteur dans le parent (TableWidget)
+        if hasattr(self.parent, "maj_nb_entites"):
+            self.parent.maj_nb_entites(self.nom_liste)
+
+
     def open_liste(self):
+        print("open_liste")
         self.dialog = QDialog()
         loadUi(os.path.join(os.path.dirname(__file__), "liste.ui"), self.dialog)
         self.dialog.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
@@ -207,14 +308,18 @@ class DialogListe(QObject):
         self.dialog.tableView.customContextMenuRequested.connect(self.show_menu_supp)
 
         # gestion d'ouverture de plusieurs dialog liste
-        self.dialogs_liste.append(self.dialog)
+        # self.dialogs_liste.append(self.dialog)
         self.dialog.setAttribute(Qt.WA_DeleteOnClose)
-        self.dialog.destroyed.connect(lambda _, dlg = self.dialog:self.dialogs_liste.remove(dlg))
+        self.dialog.destroyed.connect(lambda _=None, dlg=self: self.parent.dlg_liste.remove(dlg)
+        )
+        # self.dialog.destroyed.connect(lambda _, dlg = self.dialog:self.dialogs_liste.remove(dlg))
+
         self.dialog.setWindowTitle(self.parent.get_nom_list_sel())
 
         # recuperation des données de la liste sélectionnée
-        nom_liste = self.parent.get_nom_list_sel()
-        self.dico_json = self.parent.get_dico_from_json(nom_liste)
+        # nom_liste = self.parent.get_nom_list_sel()
+        self.nom_liste = self.parent.get_nom_list_sel()
+        self.dico_json = self.parent.get_dico_from_json(self.nom_liste)
 
         # initialisation du tableview (creation des colonnes en fonction des champs des layers du json)
         self.init_tableview()
