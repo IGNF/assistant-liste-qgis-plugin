@@ -27,7 +27,8 @@
       </size>
      </property>
      <property name="text">
-      <string>Ouvrir la table attributaire</string>
+      <string>Ouvrir la table attributaire
+pour toutes les entités</string>
      </property>
     </widget>
    </item>
