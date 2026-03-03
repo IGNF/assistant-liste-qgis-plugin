@@ -83,7 +83,7 @@ pour toutes les entités</string>
      </property>
      <property name="icon">
       <iconset>
-       <normaloff>icons/table-manager.png</normaloff>icons/table-manager.png</iconset>
+       <normaloff>icons/filtre.png</normaloff>icons/filtre.png</iconset>
      </property>
      <property name="iconSize">
       <size>
