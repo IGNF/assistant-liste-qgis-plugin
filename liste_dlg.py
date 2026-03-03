@@ -69,23 +69,13 @@ class DialogListe(QObject):
 
         menu = QMenu()
         enlever_ligne = menu.addAction("Enlever de la liste")
-        zoom_selection = menu.addAction("Zoomer sur les lignes sélectionnées")
+        zoom_selection = menu.addAction("Zoomer sur les entités sélectionnées")
         open_tableattributaire = menu.addAction("Ouvrir la table attributaire des entités sélectionnées")
         action = menu.exec_(self.dialog.tableView.viewport().mapToGlobal(position))
 
         # ================================
         # suppression d'une ligne
         if action == enlever_ligne:
-            # si c'est la liste "Sélection" on met à jour la selection dans le canvas
-            # selected_avant_supp = []
-            # if self.nom_liste == NOM_LISTE_SELECTION:
-            #     # recuperation des ids sélectionnées
-            #     for layer_name in self.dico_json.keys():
-            #         layers = QgsProject.instance().mapLayersByName(layer_name)
-            #         layer = layers[0]
-            #         # recuperation des ids sélectionnées
-            #         selected_avant_supp.append(layer.selectedFeatureIds())
-
             # supprime la ligne sélectionnée et réécrit le json , TOUTES listes sélectionnées
             self.remove_ligne()
 
@@ -320,7 +310,6 @@ class DialogListe(QObject):
                 if e_layer == row_layer and int(e.get("id", 0)) == row_id:
                     self.model.removeRow(ligne)
 
-
                     # si c'est la liste sélection on désélectionne la ligne
                     if self.nom_liste == NOM_LISTE_SELECTION:
                         layers = QgsProject.instance().mapLayersByName(row_layer)
@@ -334,7 +323,6 @@ class DialogListe(QObject):
                             del dico_json[row_layer]
                     break
         self.dialog.tableView.viewport().update()
-
 
         # Réécrire le JSON
         with open(fichier_json, "w", encoding="utf-8") as f:
@@ -350,7 +338,6 @@ class DialogListe(QObject):
         # récuperation des données de la liste sélectionnée
         self.nom_liste = self.parent.get_nom_list_sel()
         self.dico_json = self.parent.get_dico_from_json(self.nom_liste)
-
 
         # vérifier si la liste est déjà ouverte
         for dlg in self.parent.List_dialogliste:

@@ -5,12 +5,12 @@
 [general]
 name=IGN Assistant liste
 qgisMinimumVersion=3.0
-description=Assistant complexe
+description=Gestionnaire de listes
 version=0.1
 author=Gérôme PECHEUR (IGN)
 email=gerome.pecheur@ign.fr
 
-about=Assisstant liste
+# about=
 
 tracker=http://bugs
 repository=http://repo

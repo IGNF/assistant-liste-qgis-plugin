@@ -442,7 +442,8 @@ class AssistantListe:
 
         # show the dialog
         self.dlg = ListeDialog()
-        self.dlg.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        self.dlg.setParent(self.iface.mainWindow())
+        self.dlg.setWindowFlags(Qt.Dialog | Qt.WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
         # ===========slot===============
