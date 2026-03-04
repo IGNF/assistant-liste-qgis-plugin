@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-TITRE = "Assistant liste v0.0.1"
+TITRE = "Assistant liste v0.1.0"
 
 NOM_LISTE_SELECTION = "Sélection"
 CLEABS = "cleabs"
