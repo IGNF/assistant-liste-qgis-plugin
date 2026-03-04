@@ -6,7 +6,7 @@
 name=IGN Assistant liste
 qgisMinimumVersion=3.0
 description=Gestionnaire de listes
-version=0.1
+version=0.1.0
 author=Gérôme PECHEUR (IGN)
 email=gerome.pecheur@ign.fr
 
