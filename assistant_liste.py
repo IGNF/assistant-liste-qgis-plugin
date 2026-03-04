@@ -483,4 +483,11 @@ class AssistantListe:
 
         # Run the dialog event loop
         self.dlg.show()
+        result = self.dlg.exec_()
+        if not result:
+            # on deconnecte le signal en quittant
+            try:
+                self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
+            except TypeError:
+                pass  # aucune connexion existante
 
