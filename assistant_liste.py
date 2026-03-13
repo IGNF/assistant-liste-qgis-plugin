@@ -35,7 +35,7 @@ from .constantes import *
 class AssistantListe:
     def __init__(self, iface):
         self.iface = iface
-        # liste des fichiers json trouvé dans le dossier LISTES
+        # liste des fichiers json trouvés dans le dossier LISTES
         self.fichiers_json = None
         self.dlg = None
         # nombre d'entités dans le dictionnaire
