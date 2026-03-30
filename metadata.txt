@@ -9,6 +9,7 @@ description=Gestionnaire de listes
 version=0.1.0
 author=Gérôme PECHEUR (IGN)
 email=gerome.pecheur@ign.fr
+license=GNU AGPL v3
 
 # about=
 
