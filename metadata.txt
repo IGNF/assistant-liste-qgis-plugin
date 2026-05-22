@@ -15,7 +15,7 @@ license=GNU AGPL v3
 
 tracker=https://github.com/IGNF/assistant-liste-qgis-plugin/issues
 repository=https://github.com/IGNF/assistant-liste-qgis-plugin
-homepage=http://homepage
+homepage=https://ignf.github.io/assistant-liste-qgis-plugin/
 # End of mandatory metadata
 
 # Recommended items:
