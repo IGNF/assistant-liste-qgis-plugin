@@ -141,11 +141,11 @@ style="width:4.4in;height:2.02639in" />
 
 # Création de listes
 
-> <img src="images/image7.png"
-> style="width:2.04348in;height:0.19606in" />
->
-> La nouvelle liste ne doit pas se nommer « Sélection » ni être déjà
-> présente dans le gestionnaire.
+<img src="images/image7.png"
+style="width:2.04348in;height:0.19606in" />
+
+La nouvelle liste ne doit pas se nommer « Sélection » ni être déjà
+présente dans le gestionnaire.
 
 # Ajout d’éléments dans une liste
 
@@ -157,10 +157,10 @@ contenu de la liste est vidée avant ajout)
 
 ## Via : « glissé & déposé »
 
-> On peut effectuer un « glisser & déposé » de lignes d’une liste vers
-> une autre liste.
->
-> On peut sélectionner plusieurs lignes.
+On peut effectuer un « glisser & déposé » de lignes d’une liste vers
+une autre liste.
+
+On peut sélectionner plusieurs lignes.
 
 ### D’une liste A vers la liste « sélection » : 
 
@@ -205,8 +205,8 @@ Cas d’une liste quelconque :
 
 ## Via : « glissé & déposé »
 
-> Le glissé & déposé de la liste « A » vers la liste « B » ajoute les
-> lignes dans la liste « B » et supprime les lignes dans la liste « A »
+Le glissé & déposé de la liste « A » vers la liste « B » ajoute les
+lignes dans la liste « B » et supprime les lignes dans la liste « A »
 
 # Ouverture de la table attributaire
 
