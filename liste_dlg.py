@@ -61,7 +61,7 @@ class DialogListe(QObject):
     def on_update_label_nb_entite(self):
         self.dialog.label_nb_entite.setText(f"Nombre d'entités = {self.model.rowCount()}")
 
-    def on_show_menu_supp(self, position):
+    def on_show_menu_contextuel(self, position):
         selection_model = self.dialog.tableView.selectionModel()
         select_ligne = {index.row() for index in selection_model.selectedRows()}  # set de lignes sélectionnées
         if not select_ligne:
@@ -359,7 +359,7 @@ class DialogListe(QObject):
 
         # menu contextuel
         self.dialog.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.dialog.tableView.customContextMenuRequested.connect(self.on_show_menu_supp)
+        self.dialog.tableView.customContextMenuRequested.connect(self.on_show_menu_contextuel)
 
         # gestion d'ouverture de plusieurs dialog liste
         self.dialog.setAttribute(Qt.WA_DeleteOnClose)
