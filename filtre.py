@@ -1,9 +1,11 @@
 import os
 
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
-from PyQt5.QtWidgets import QDialog
-from PyQt5.uic import loadUi
+from qgis.PyQt.QtCore import Qt, QObject
+from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
+from qgis.PyQt.QtWidgets import QDialog
+from qgis.PyQt.uic import loadUi
+
+from .mapping_version import *
 
 
 class DialogFiltre(QObject):
@@ -19,7 +21,7 @@ class DialogFiltre(QObject):
         entete_colonne = []
         for col in range(self.parent.model.columnCount()):
             if not self.parent.dialog.tableView.isColumnHidden(col):
-                entete_colonne.append(self.parent.model.headerData(col, Qt.Horizontal))
+                entete_colonne.append(self.parent.model.headerData(col, Horizontal))
 
         layer,champs = self.parent.get_structure_layer()
         self.model = QStandardItemModel()
@@ -28,13 +30,13 @@ class DialogFiltre(QObject):
             item.setCheckable(True)
             item.setEditable(False)
             if champ in entete_colonne:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(Checked)
             self.model.appendRow(item)
         self.dlg_filtre.listView.setModel(self.model)
 
     def sel_all_colonnes(self):
-        etat = Qt.Checked if not self.all_is_checked else Qt.Unchecked
-        # if etat == Qt.Checked:
+        etat = Checked if not self.all_is_checked else Unchecked
+        # if etat == Checked:
         #     self.dlg_filtre.pushButton_sel_all.setText("Rien")
         # else:
         #     self.dlg_filtre.pushButton_sel_all.setText("Tout")
@@ -51,7 +53,7 @@ class DialogFiltre(QObject):
         list_checked = []
         for row in range(self.model.rowCount()):
             item = self.model.item(row)
-            if item.checkState() == Qt.Unchecked:
+            if item.checkState() == Unchecked:
                 list_checked.append(item.text())
         self.dlg_filtre.close()
         return list_checked
@@ -60,7 +62,7 @@ class DialogFiltre(QObject):
     def open_dialog(self,parent = None):
         self.dlg_filtre = QDialog(parent)
         loadUi(os.path.join(os.path.dirname(__file__), "filtre.ui"), self.dlg_filtre)
-        self.dlg_filtre.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        self.dlg_filtre.setWindowFlags(WindowCloseButtonHint | WindowStaysOnTopHint)
         self.dlg_filtre.setWindowTitle("Filtrer les colonnes visibles")
 
         self.dlg_filtre.pushButton_sel_all.setText("Rien")
@@ -72,5 +74,5 @@ class DialogFiltre(QObject):
 
         self.ini_list_view()
 
-        self.dlg_filtre.exec_()
+        self.dlg_filtre.exec()
 

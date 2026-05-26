@@ -23,14 +23,15 @@
 """
 import shutil
 
-from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget, QFileDialog, QApplication, QInputDialog
+from qgis.PyQt.QtGui import QColor, QFont
+from qgis.PyQt.QtWidgets import QTableWidgetItem, QTableWidget, QFileDialog, QApplication, QInputDialog
 import os.path
 
 
 from .assistant_liste_dialog import ListeDialog
 from .liste_dlg import *
 from .constantes import *
+from .mapping_version import *
 
 class AssistantListe:
     def __init__(self, iface):
@@ -55,7 +56,7 @@ class AssistantListe:
         self.dlg.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
 
         # menu contextuel
-        self.dlg.tableWidget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.dlg.tableWidget.setContextMenuPolicy(CustomContextMenu)
         self.dlg.tableWidget.customContextMenuRequested.connect(self.on_menu_contextuel)
 
     def on_menu_contextuel(self,pos):
@@ -66,7 +67,7 @@ class AssistantListe:
 
         menu = QMenu()
         renommer_liste = menu.addAction("Renommer la liste")
-        action = menu.exec_(self.dlg.tableWidget.viewport().mapToGlobal(pos))
+        action = menu.exec(self.dlg.tableWidget.viewport().mapToGlobal(pos))
 
         # ================================
         # renommer une liste
@@ -110,8 +111,8 @@ class AssistantListe:
 
         # rendre non sélectionnable la 2ᵉ colonne (nb entités)
         item_nb = QTableWidgetItem("0")
-        item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
-        item_nb.setTextAlignment(Qt.AlignCenter)
+        item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
+        item_nb.setTextAlignment(AlignCenter)
 
         if nom == NOM_LISTE_SELECTION:
             nbligne = 0
@@ -203,8 +204,8 @@ class AssistantListe:
             self.nb_elements = sum(len(v) for v in data.values())
             item_nb_sel = QTableWidgetItem(str(self.nb_elements))
             # rendre non sélectionnable la 2ᵉ colonne
-            item_nb_sel.setFlags(item_nb_sel.flags() & ~Qt.ItemIsSelectable)
-            item_nb_sel.setTextAlignment(Qt.AlignCenter)
+            item_nb_sel.setFlags(item_nb_sel.flags() & ~ItemIsSelectable)
+            item_nb_sel.setTextAlignment(AlignCenter)
             self.dlg.tableWidget.setItem(0, 1, item_nb_sel)
 
     # créer un json vide pour chaque liste crée
@@ -258,7 +259,7 @@ class AssistantListe:
                     os.remove(os.path.join(get_dossier_listes(), fic))
                     # on supprime la ligne du tablewidget
                     nom_sans_ext,ext = os.path.splitext(fic)
-                    item = self.dlg.tableWidget.findItems(nom_sans_ext, Qt.MatchExactly)
+                    item = self.dlg.tableWidget.findItems(nom_sans_ext, MatchExactly)
                     self.dlg.tableWidget.removeRow(item[0].row())
 
     def on_suppr_list_sel(self):
@@ -293,12 +294,12 @@ class AssistantListe:
                 nb = sum(len(v) for v in data.values())
 
         # chercher la ligne correspondante dans le tableWidget
-        items = self.dlg.tableWidget.findItems(nom_liste, Qt.MatchExactly)
+        items = self.dlg.tableWidget.findItems(nom_liste, MatchExactly)
         if items:
             ligne = items[0].row()
             item_nb = QTableWidgetItem(str(nb))
-            item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
-            item_nb.setTextAlignment(Qt.AlignCenter)
+            item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
+            item_nb.setTextAlignment(AlignCenter)
             self.dlg.tableWidget.setItem(ligne, 1, item_nb)
 
     # sélectionne toutes les entités issues de la liste sélectionnée
@@ -334,7 +335,7 @@ class AssistantListe:
         # ecrire le nombre de selection (nb de ligne du json) dans la 2ieme colonne de la ligne sélectionnée
         nb_sel = sum(len(ids) for ids in selection_dict.values())
         item_nb = QTableWidgetItem(str(nb_sel))
-        item_nb.setTextAlignment(Qt.AlignCenter)
+        item_nb.setTextAlignment(AlignCenter)
 
         if liste_selection:
             self.dlg.tableWidget.setItem(0, 1, item_nb)
@@ -354,7 +355,7 @@ class AssistantListe:
             return
         ListeEntitesDialog = DialogListe(self)
         self.List_dialogliste.append(ListeEntitesDialog)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(WaitCursor)
         ListeEntitesDialog.open_liste()
         QApplication.restoreOverrideCursor()
 
@@ -440,10 +441,10 @@ class AssistantListe:
     def apropos(self):
         dlgAProposDe = QDialog()
         loadUi(os.path.join(os.path.dirname(__file__) , "aproposde.ui"), dlgAProposDe)
-        dlgAProposDe.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
+        dlgAProposDe.setWindowFlags(WindowStaysOnTopHint | WindowCloseButtonHint)
         dlgAProposDe.setWindowTitle(f"{TITRE}")
         dlgAProposDe.pushButtonAffichedoc.clicked.connect(afficheDoc)
-        dlgAProposDe.exec_()
+        dlgAProposDe.exec()
 
     def initGui(self):
         pass
@@ -466,7 +467,7 @@ class AssistantListe:
         # show the dialog
         self.dlg = ListeDialog()
         self.dlg.setParent(self.iface.mainWindow())
-        self.dlg.setWindowFlags(Qt.Dialog | Qt.WindowCloseButtonHint)
+        self.dlg.setWindowFlags(Dialog | WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
         # ===========slot===============
@@ -506,7 +507,7 @@ class AssistantListe:
 
         # Run the dialog event loop
         self.dlg.show()
-        result = self.dlg.exec_()
+        result = self.dlg.exec()
         if not result:
             # on deconnecte le signal en quittant
             try:

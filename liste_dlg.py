@@ -1,14 +1,9 @@
 import json
-import time
-from PyQt5.QtCore import pyqtSignal, QTimer
-from PyQt5.QtWidgets import QMenu, QMessageBox
-from pyexpat import features
+from qgis.PyQt.QtCore import pyqtSignal, QTimer
+from qgis.PyQt.QtWidgets import QMenu, QMessageBox
 
 from qgis._core import QgsCoordinateTransform
-from qgis._gui import QgsAttributeTableFilterModel
 from qgis.gui import QgsGui
-from qgis.core import QgsExpression, QgsFeatureRequest
-from scipy.linalg.interpolative import id_to_svd
 
 from .fonction import *
 from .filtre import *
@@ -71,7 +66,7 @@ class DialogListe(QObject):
         enlever_ligne = menu.addAction("Enlever de la liste")
         zoom_selection = menu.addAction("Zoomer sur les entités sélectionnées")
         open_tableattributaire = menu.addAction("Ouvrir la table attributaire des entités sélectionnées")
-        action = menu.exec_(self.dialog.tableView.viewport().mapToGlobal(position))
+        action = menu.exec(self.dialog.tableView.viewport().mapToGlobal(position))
 
         # ================================
         # suppression d'une ligne
@@ -168,7 +163,7 @@ class DialogListe(QObject):
         all_rows = []
         # on ne récupère que les champs à partir de la 3ieme colonne (donc sauf "layer et "id")
         champs_entete = [
-                str(self.model.headerData(col, Qt.Horizontal, Qt.DisplayRole))
+                str(self.model.headerData(col, Horizontal, DisplayRole))
                 for col in range(2,self.model.columnCount())
             ]
         # si liste "selection" on vide le tableview avant de remplir (pour éviter les doublons)
@@ -199,7 +194,7 @@ class DialogListe(QObject):
             layer = layers[0]
 
             row_items = [QStandardItem(layer_name)]
-            row_items[0].setFlags(row_items[0].flags() & ~Qt.ItemIsEditable)
+            row_items[0].setFlags(row_items[0].flags() & ~ItemIsEditable)
 
             for ident in ids_sel:
                 feature = layer.getFeature(ident)
@@ -207,20 +202,20 @@ class DialogListe(QObject):
                     continue
                 row_items = []
                 item_layer = QStandardItem(layer_name)
-                item_layer.setFlags(item_layer.flags() & ~Qt.ItemIsEditable)
+                item_layer.setFlags(item_layer.flags() & ~ItemIsEditable)
                 row_items.append(item_layer)
                 item_ident = QStandardItem(str(ident))
-                item_ident.setFlags(item_ident.flags() & ~Qt.ItemIsEditable)
+                item_ident.setFlags(item_ident.flags() & ~ItemIsEditable)
                 row_items.append(item_ident)
                 for champ in champs_entete:
                     # si le champ existe
                     if feature.fields().indexOf(champ) != -1:
                         valeur = feature.attribute(champ)
                         item = QStandardItem("" if valeur is None else str(valeur))
-                        item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                        item.setFlags(item.flags() & ~ItemIsEditable)
                     else:
                         item = QStandardItem("")
-                        item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                        item.setFlags(item.flags() & ~ItemIsEditable)
                     row_items.append(item)
                 # ajout de la ligne complète
                 self.model.appendRow(row_items)
@@ -274,7 +269,7 @@ class DialogListe(QObject):
         if not self.model:
             return
         for col in range(self.model.columnCount()):
-            entete = self.model.headerData(col, Qt.Horizontal)
+            entete = self.model.headerData(col, Horizontal)
             if entete in self.colonne_filtre:
                 self.dialog.tableView.hideColumn(col)
             else:
@@ -350,7 +345,7 @@ class DialogListe(QObject):
 
         self.dialog = QDialog()
         loadUi(os.path.join(os.path.dirname(__file__), "liste.ui"), self.dialog)
-        self.dialog.setWindowFlags(Qt.WindowCloseButtonHint | Qt.WindowStaysOnTopHint)
+        self.dialog.setWindowFlags(WindowCloseButtonHint | WindowStaysOnTopHint)
 
         # slot
         self.dialog.pushButtonOpenTableAttribut.clicked.connect(lambda :self.on_open_table_attribut(ligne ="All"))
@@ -358,11 +353,11 @@ class DialogListe(QObject):
         self.dialog.pushButtonHide.clicked.connect(self.on_show_filtre)
 
         # menu contextuel
-        self.dialog.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.dialog.tableView.setContextMenuPolicy(CustomContextMenu)
         self.dialog.tableView.customContextMenuRequested.connect(self.on_show_menu_contextuel)
 
         # gestion d'ouverture de plusieurs dialog liste
-        self.dialog.setAttribute(Qt.WA_DeleteOnClose)
+        self.dialog.setAttribute(WA_DeleteOnClose)
         self.dialog.destroyed.connect(lambda _=None, dlg=self: self.parent.List_dialogliste.remove(dlg))
 
         self.dialog.setWindowTitle(self.parent.get_nom_list_sel())

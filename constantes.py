@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 
 TITRE = "Assistant liste"
 
