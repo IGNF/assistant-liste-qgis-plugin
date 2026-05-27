@@ -5,6 +5,7 @@
 [general]
 name=IGN Assistant liste
 qgisMinimumVersion=3.0
+qgisMaximumVersion=4.99
 description=Gestionnaire de listes
 version=0.2.0_recette
 author=Gérôme PECHEUR (IGN)
