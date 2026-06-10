@@ -1,3 +1,4 @@
+
 <table>
 <colgroup>
 <col style="width: 21%" />
@@ -8,69 +9,72 @@
 <td rowspan="2"><img src="images/image3.jpeg"
 style="width:1.38681in;height:1.47153in"
 alt="logo_IGN_pour_lettre" /></td>
-<td style="text-align: center;"><p><strong>Manuel utilisateur du plugin
+<td style="font-size: 24px;text-align: center;"><p><strong>Manuel utilisateur du plugin
 « Assistant listes »</strong></p>
-<p><strong>V0.1.0</strong></p></td>
+<p><strong>V0.2.0</strong></p></td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
+<td style="font-size: 16px;text-align: center;">Développeur  : Gérôme PECHEUR (IGN)</td>
 </tr>
 </tbody>
 </table>
 
 
 
-| Version |    Date    | Modifié par    | Historique des modifications |
-|:-------:|:----------:|----------------|------------------------------|
-|  0.1.0  | 05/02/2026 | Gérôme PECHEUR | Création                     |
 
-**Sommaire**
+## Sommaire
 
-[1 Prérequis](#prérequis)
+- [1. Prérequis](#prerequis)
 
-[2 Résumé](#résumé)
+- [2. Résumé](#resume)
 
-[3 Installation](#installation)
+- [3 Installation](#installation)
 
-[4 Présentation du gestionnaire de listes](#présentation-du-gestionnaire-de-listes)
+- [4. Présentation du gestionnaire de listes](#presentation-du-gestionnaire-de-listes)
 
-[5 Présentation d’une liste](#présentation-dune-liste)
+- [5. Présentation d’une liste](#presentation-dune-liste)
 
-[6 Création de listes](#création-de-listes)
+- [6. Création de listes](#creation-de-listes)
 
-[7 Ajout d’éléments dans une liste](#ajout-déléments-dans-une-liste)
+- [7. Ajout d’éléments dans une liste](#ajout-delements-dans-une-liste)
 
-[7.1 Via : <img src="images/image4.png"
+	- [7.1 Via : <img src="images/image4.png"
 style="width:0.67847in;height:0.18264in" />](#via)
 
-[7.2 Via : « glissé & déposé »](#via-glissé-déposé)
+	- [7.2 Via : « glissé & déposé »](#via-glisse-dépose)
 
-[7.2.1 D’une liste A vers la liste « sélection » :](#dune-liste-a-vers-la-liste-sélection)
+		- [7.2.1 D’une liste A vers la liste « sélection » :](#dune-liste-a-vers-la-liste-sélection)
+		
+		- [7.2.2 De la liste « Sélection » vers une liste A](#de-la-liste-sélection-vers-une-liste-a)
+		- [7.2.3 D’une liste A vers une liste B](#dune-liste-a-vers-une-liste-b)						
 
-[7.2.2 De la liste « Sélection » vers une liste A](#de-la-liste-sélection-vers-une-liste-a)
+- [8. Suppression d’éléments dans une liste](#suppression-delements-dans-une-liste)
 
-[7.2.3 D’une liste A vers une liste B](#dune-liste-a-vers-une-liste-b)
+	- [8.1 Via le menu contextuel](#via-le-menu-contextuel)
 
-[8 Suppression d’éléments dans une liste](#suppression-déléments-dans-une-liste)
+	- [8.2 Via : « glissé & déposé »](#via-glisse-dépose)
 
-[8.1 Via le menu contextuel](#via-le-menu-contextuel)
+- [9. Ouverture de la table attributaire](#ouverture-de-la-table-attributaire)
 
-[8.2 Via : « glissé & déposé »](#via-glissé-déposé-1)
-
-[9 Ouverture de la table attributaire](#ouverture-de-la-table-attributaire)
-
-# Prérequis
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="prerequis" style="color: white;margin:0;" >1. Prérequis</h2>
+</div>
 
 Version de QGIS : 3.40 ou supérieur.
 
-Le plugin « maitre » doit être installé préalablement.
+Le plugin « maitre » doit préalablement être installé : 
+[maitre-qgis-plugin sur GitHub](https://github.com/IGNF/maitre-qgis-plugin)
 
-# Résumé
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="resume" style="color: white;margin:0;" >2. Résumé</h2>
+</div>
 
 Ce plugin permet de gérer des listes d’entités de géométries différentes
 (création, suppression)
 
-# Installation
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="installation" style="color: white;margin:0;" >3. Installation</h2>
+</div>
 
 Ouvrir QGIS.
 
@@ -81,7 +85,9 @@ sur **Installer le plugin**.
 <img src="images/image5.png"
 style="width:6.83889in;height:1.525in" />
 
-# Présentation du gestionnaire de listes
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="presentation-du-gestionnaire-de-listes" style="color: white;margin:0;" >4. Présentation du gestionnaire de listes</h2>
+</div>
 
 <img src="images/image6.png"
 style="width:1.81281in;height:2.14783in" />
@@ -134,12 +140,16 @@ Gestionnaire configuré avec plusieurs listes.
 Pour ouvrir une liste il faut faire un « double-clic » sur la liste
 désirée.
 
-# Présentation d’une liste
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="presentation-dune-liste" style="color: white;margin:0;" >5. Présentation d’une liste</h2>
+</div>
 
 <img src="images/image15.png"
 style="width:4.4in;height:2.02639in" />
 
-# Création de listes
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="creation-de-listes" style="color: white;margin:0;" >6. Création de listes</h2>
+</div>
 
 <img src="images/image7.png"
 style="width:2.04348in;height:0.19606in" />
@@ -147,22 +157,29 @@ style="width:2.04348in;height:0.19606in" />
 La nouvelle liste ne doit pas se nommer « Sélection » ni être déjà
 présente dans le gestionnaire.
 
-# Ajout d’éléments dans une liste
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="ajout-delements-dans-une-liste" style="color: white;margin:0;" >7. Ajout d’éléments dans une liste</h2>
+</div>
 
-## Via : <img src="images/image4.png"
-style="width:0.67847in;height:0.18264in" />
+<div  style="font-size: 10px;background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="via" style="color: white;margin:0;" >7.1 via<img src="images/image4.png" style="width:0.67847in;height:0.18264in" /></h2>
+</div>
 
 Ajoute dans la liste toutes les entités sélectionnées dans QGIS (le
 contenu de la liste est vidée avant ajout)
 
-## Via : « glissé & déposé »
+<div  style="font-size: 10px;background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="via-glisse-dépose" style="color: white;margin:0;" >7.2 Via : « glissé & déposé »</h2>
+</div>
 
 On peut effectuer un « glisser & déposé » de lignes d’une liste vers
 une autre liste.
 
 On peut sélectionner plusieurs lignes.
 
-### D’une liste A vers la liste « sélection » : 
+<div  style="font-size: 10px;background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="dune-liste-a-vers-la-liste-sélection" style="color: white;margin:0;" >7.2.1 D’une liste A vers la liste « sélection » :</h2>
+</div>
 
 - Une ou plusieurs lignes sont ajoutées à la liste « Sélection », les
   entités correspondantes sont également ajoutées à la sélection de
@@ -171,21 +188,32 @@ On peut sélectionner plusieurs lignes.
 - La liste « A » n’est pas modifiée (la ou les lignes de la liste
   d’origine ne sont pas supprimées).
 
-### De la liste « Sélection » vers une liste A
+<div  style="font-size: 10px;background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="de-la-liste-sélection-vers-une-liste-a" style="color: white;margin:0;" >7.2.2 De la liste « Sélection » vers une liste A</h2>
+</div>
 
 - Une ou plusieurs lignes sont ajoutées à la liste « A »
 
 - La liste « Sélection » n’est pas modifiée.
 
-### D’une liste A vers une liste B
+<div  style="font-size: 10px;background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="dune-liste-a-vers-une-liste-b" style="color: white;margin:0;" >7.2.3 D’une liste A vers une liste B</h2>
+</div>
 
 - La ou les ligne sont supprimées de la liste « A »
 
 - La ou les ligne sont ajoutées de la liste « B »
 
-# Suppression d’éléments dans une liste
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="suppression-delements-dans-une-liste" style="color: white;margin:0;" >8. Suppression d’éléments dans une liste</h2>
+</div>
 
-## Via le menu contextuel
+
+	
+<div  style="font-size: 10px;background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="via-le-menu-contextuel" style="color: white;margin:0;" >8.1 Via le menu contextuel</h2>
+</div>
+
 
 - On sélectionne une ou plusieurs lignes d’une liste
 
@@ -203,12 +231,16 @@ Cas d’une liste quelconque :
 
 - La ou les lignes sont supprimées de la liste
 
-## Via : « glissé & déposé »
+<div  style="font-size: 10px;background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="via-glisse-dépose" style="color: white;margin:0;" >8.2 Via : « glissé & déposé »</h2>
+</div>
 
 Le glissé & déposé de la liste « A » vers la liste « B » ajoute les
 lignes dans la liste « B » et supprime les lignes dans la liste « A »
 
-# Ouverture de la table attributaire
+<div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
+  <h2 id="ouverture-de-la-table-attributaire" style="color: white;margin:0;" >9. Ouverture de la table attributaire</h2>
+</div>
 
 Via le menu contextuel il est possible d’ouvrir la table attributaire
 QGIS correspondant à la ligne sélectionnées (= entités)
