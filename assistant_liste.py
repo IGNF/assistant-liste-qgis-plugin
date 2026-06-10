@@ -53,7 +53,7 @@ class AssistantListe:
         self.dlg.tableWidget.verticalHeader().setDefaultSectionSize(10)
         self.dlg.tableWidget.verticalHeader().setVisible(False)
         # Rendre toutes les cellules non éditables
-        self.dlg.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.dlg.tableWidget.setEditTriggers(NoEditTriggers)
 
         # menu contextuel
         self.dlg.tableWidget.setContextMenuPolicy(CustomContextMenu)

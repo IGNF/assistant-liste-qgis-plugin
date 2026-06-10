@@ -27,6 +27,7 @@ try :
     red = Qt.GlobalColor.red
     DisplayRole = Qt.ItemDataRole.DisplayRole
     WA_DeleteOnClose = Qt.WidgetAttribute.WA_DeleteOnClose
+    NoEditTriggers = QAbstractItemView.EditTrigger.NoEditTriggers
 # QT5
 except :
     Dialog = Qt.Dialog
@@ -53,3 +54,4 @@ except :
     red = Qt.red
     DisplayRole = Qt.DisplayRole
     WA_DeleteOnClose = Qt.WA_DeleteOnClose
+    NoEditTriggers = QAbstractItemView.NoEditTriggers
