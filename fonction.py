@@ -1,18 +1,16 @@
-import subprocess
+import os
+import webbrowser
 
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtWidgets import QMessageBox
+from qgis.PyQt.QtCore import QTimer, Qt
 from qgis._gui import QgsHighlight
 from qgis.core import QgsVectorLayer,QgsProject,QgsExpression, QgsFeatureRequest
 from .constantes import *
+from .mapping_version import *
 
 
 def afficheDoc():
-    fichier = os.path.join(os.path.dirname(__file__), "assistant_liste.pdf")
-    if not os.path.isfile(fichier):
-        QMessageBox.warning(None,"Information","La documentation est introuvable")
-    else:
-        subprocess.Popen(['start', '', fichier], shell=True)
+    webbrowser.open("https://ignf.github.io/assistant-liste-qgis-plugin/")
+
 def get_dossier_listes() -> str:
     """
         Retourne le chemin du dossier des listes.
@@ -97,7 +95,7 @@ def clignoter_feature(layer, feature, canvas, duree=1000, intervalle=300):
     intervalle : intervalle entre visible/invisible en ms
     """
     highlight = QgsHighlight(canvas, feature.geometry(), layer)
-    highlight.setColor(Qt.red)
+    highlight.setColor(red)
     highlight.setWidth(3)
 
     # pour clignoter

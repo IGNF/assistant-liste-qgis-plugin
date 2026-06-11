@@ -5,16 +5,18 @@
 [general]
 name=IGN Assistant liste
 qgisMinimumVersion=3.0
+qgisMaximumVersion=4.99
 description=Gestionnaire de listes
-version=0.1.0
+version=0.2.0
 author=Gérôme PECHEUR (IGN)
 email=gerome.pecheur@ign.fr
 license=GNU AGPL v3
 
 # about=
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/IGNF/assistant-liste-qgis-plugin/issues
+repository=https://github.com/IGNF/assistant-liste-qgis-plugin
+homepage=https://ignf.github.io/assistant-liste-qgis-plugin/
 # End of mandatory metadata
 
 # Recommended items:
@@ -26,7 +28,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=python
 
-homepage=http://homepage
+
 category=Plugins
 icon=icons/icon_principal.png
 # experimental flag

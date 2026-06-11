@@ -23,14 +23,15 @@
 """
 import shutil
 
-from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QTableWidgetItem, QTableWidget, QMessageBox, QFileDialog, QApplication, QInputDialog
+from qgis.PyQt.QtGui import QColor, QFont
+from qgis.PyQt.QtWidgets import QTableWidgetItem, QTableWidget, QFileDialog, QApplication, QInputDialog
 import os.path
 
 
 from .assistant_liste_dialog import ListeDialog
 from .liste_dlg import *
 from .constantes import *
+from .mapping_version import *
 
 class AssistantListe:
     def __init__(self, iface):
@@ -44,11 +45,6 @@ class AssistantListe:
         self.List_dialogliste = []
         self.colonne_filtre_par_liste = {}
 
-
-        # Check if plugin was started the first time in current QGIS session
-        # Must be set in initGui() to survive plugin reloads
-        self.first_start = None
-
     def inittablewidget(self):
         self.dlg.tableWidget.setColumnCount(2)
         self.dlg.tableWidget.setHorizontalHeaderLabels(["Listes", "Nb entités"])
@@ -57,7 +53,44 @@ class AssistantListe:
         self.dlg.tableWidget.verticalHeader().setDefaultSectionSize(10)
         self.dlg.tableWidget.verticalHeader().setVisible(False)
         # Rendre toutes les cellules non éditables
-        self.dlg.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.dlg.tableWidget.setEditTriggers(NoEditTriggers)
+
+        # menu contextuel
+        self.dlg.tableWidget.setContextMenuPolicy(CustomContextMenu)
+        self.dlg.tableWidget.customContextMenuRequested.connect(self.on_menu_contextuel)
+
+    def on_menu_contextuel(self,pos):
+        selection_model = self.dlg.tableWidget.selectionModel()
+        select_ligne = {index.row() for index in selection_model.selectedRows()}  # set de lignes sélectionnées
+        if not select_ligne:
+            return  # aucune sélection
+
+        menu = QMenu()
+        renommer_liste = menu.addAction("Renommer la liste")
+        action = menu.exec(self.dlg.tableWidget.viewport().mapToGlobal(pos))
+
+        # ================================
+        # renommer une liste
+        if action == renommer_liste:
+            # renomme la liste sélectionnée et réécrit le json , il faut aussi renommer le fichier json et la ligne du tablewidget
+            item = self.dlg.tableWidget.item(list(select_ligne)[0], 0)
+            nom_actuel = item.text()
+            nom_nouveau, ok = QInputDialog.getText(self.dlg, "Renommer la liste", "Nouveau nom :", text=nom_actuel)
+            if ok and nom_nouveau and nom_nouveau != nom_actuel and nom_nouveau != NOM_LISTE_SELECTION:
+                # si le nom existe deja -->return
+                if nom_nouveau in self.get_nom_all_liste():
+                    text_warning = "Ce nom existe déjà"
+                    QMessageBox.warning(self.dlg, "Avertissement", text_warning)
+                    return
+
+                # renommer le fichier json
+                chemin_fichier_actuel = os.path.join(get_dossier_listes(), f"{nom_actuel}.json")
+                chemin_fichier_nouveau = os.path.join(get_dossier_listes(), f"{nom_nouveau}.json")
+                if os.path.exists(chemin_fichier_actuel):
+                    os.rename(chemin_fichier_actuel, chemin_fichier_nouveau)
+
+                # renommer la ligne du tablewidget
+                item.setText(nom_nouveau)
 
     def creerliste(self,list_selection = False):
         if list_selection:
@@ -78,8 +111,8 @@ class AssistantListe:
 
         # rendre non sélectionnable la 2ᵉ colonne (nb entités)
         item_nb = QTableWidgetItem("0")
-        item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
-        item_nb.setTextAlignment(Qt.AlignCenter)
+        item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
+        item_nb.setTextAlignment(AlignCenter)
 
         if nom == NOM_LISTE_SELECTION:
             nbligne = 0
@@ -171,8 +204,8 @@ class AssistantListe:
             self.nb_elements = sum(len(v) for v in data.values())
             item_nb_sel = QTableWidgetItem(str(self.nb_elements))
             # rendre non sélectionnable la 2ᵉ colonne
-            item_nb_sel.setFlags(item_nb_sel.flags() & ~Qt.ItemIsSelectable)
-            item_nb_sel.setTextAlignment(Qt.AlignCenter)
+            item_nb_sel.setFlags(item_nb_sel.flags() & ~ItemIsSelectable)
+            item_nb_sel.setTextAlignment(AlignCenter)
             self.dlg.tableWidget.setItem(0, 1, item_nb_sel)
 
     # créer un json vide pour chaque liste crée
@@ -190,8 +223,6 @@ class AssistantListe:
             if layer.type() == layer.VectorLayer:  # seulement les couches vecteurs
                 selected_ids = layer.selectedFeatureIds()
                 if selected_ids:
-                    # recuperation des cleabs dorénavant
-                    # selection_dict[layer.name()] = get_cleabs_from_ids(layer,selected_ids)
                     selection_dict[layer.name()] = selected_ids
         return selection_dict
 
@@ -204,8 +235,8 @@ class AssistantListe:
 
         # on réinitialise le tablewidget en laissant une ligne --> liste selection --> (1)
         self.dlg.tableWidget.setRowCount(1)
-        # on supprime tous les json du dossier LISTES sauf "Sélection"
 
+        # on supprime tous les json du dossier LISTES sauf "Sélection"
         for f in os.listdir(get_dossier_listes()):
             chemin_fichier = os.path.join(get_dossier_listes(), f)
             # Supprime seulement les fichiers (évite les dossiers)
@@ -214,9 +245,7 @@ class AssistantListe:
                 if os.path.isfile(chemin_fichier) and f.endswith(".json"):
                     os.remove(chemin_fichier)
 
-
     def on_suppr_list_vide(self):
-        # on actualise self.fichiers_json
         for fic in self.get_all_json():
             # Charger le fichier
             with open(os.path.join(get_dossier_listes(), fic), "r", encoding="utf-8") as f:
@@ -230,7 +259,7 @@ class AssistantListe:
                     os.remove(os.path.join(get_dossier_listes(), fic))
                     # on supprime la ligne du tablewidget
                     nom_sans_ext,ext = os.path.splitext(fic)
-                    item = self.dlg.tableWidget.findItems(nom_sans_ext, Qt.MatchExactly)
+                    item = self.dlg.tableWidget.findItems(nom_sans_ext, MatchExactly)
                     self.dlg.tableWidget.removeRow(item[0].row())
 
     def on_suppr_list_sel(self):
@@ -265,12 +294,12 @@ class AssistantListe:
                 nb = sum(len(v) for v in data.values())
 
         # chercher la ligne correspondante dans le tableWidget
-        items = self.dlg.tableWidget.findItems(nom_liste, Qt.MatchExactly)
+        items = self.dlg.tableWidget.findItems(nom_liste, MatchExactly)
         if items:
             ligne = items[0].row()
             item_nb = QTableWidgetItem(str(nb))
-            item_nb.setFlags(item_nb.flags() & ~Qt.ItemIsSelectable)
-            item_nb.setTextAlignment(Qt.AlignCenter)
+            item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
+            item_nb.setTextAlignment(AlignCenter)
             self.dlg.tableWidget.setItem(ligne, 1, item_nb)
 
     # sélectionne toutes les entités issues de la liste sélectionnée
@@ -306,7 +335,7 @@ class AssistantListe:
         # ecrire le nombre de selection (nb de ligne du json) dans la 2ieme colonne de la ligne sélectionnée
         nb_sel = sum(len(ids) for ids in selection_dict.values())
         item_nb = QTableWidgetItem(str(nb_sel))
-        item_nb.setTextAlignment(Qt.AlignCenter)
+        item_nb.setTextAlignment(AlignCenter)
 
         if liste_selection:
             self.dlg.tableWidget.setItem(0, 1, item_nb)
@@ -326,7 +355,7 @@ class AssistantListe:
             return
         ListeEntitesDialog = DialogListe(self)
         self.List_dialogliste.append(ListeEntitesDialog)
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.setOverrideCursor(WaitCursor)
         ListeEntitesDialog.open_liste()
         QApplication.restoreOverrideCursor()
 
@@ -383,11 +412,9 @@ class AssistantListe:
             if os.path.exists(nom_liste_source_absolu):
                 shutil.copy2(nom_liste_source_absolu, nom_liste_destination)
 
-
         # on supprime le json temporaire cas des exports en clés absolues
         if os.path.exists(fichier_temp):
             os.remove(fichier_temp)
-
 
     def on_actualiserSelection(self):
         if not self.dlg.isVisible():
@@ -398,7 +425,6 @@ class AssistantListe:
             self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
         except TypeError:
             pass
-
         try:
             # mise à jour de la liste "sélection" à chaque changement de la sélection
             self.on_set_list_from_sel(True)
@@ -415,10 +441,10 @@ class AssistantListe:
     def apropos(self):
         dlgAProposDe = QDialog()
         loadUi(os.path.join(os.path.dirname(__file__) , "aproposde.ui"), dlgAProposDe)
-        dlgAProposDe.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.WindowCloseButtonHint)
+        dlgAProposDe.setWindowFlags(WindowStaysOnTopHint | WindowCloseButtonHint)
         dlgAProposDe.setWindowTitle(f"{TITRE}")
         dlgAProposDe.pushButtonAffichedoc.clicked.connect(afficheDoc)
-        dlgAProposDe.exec_()
+        dlgAProposDe.exec()
 
     def initGui(self):
         pass
@@ -427,10 +453,8 @@ class AssistantListe:
         pass
 
     def run(self):
-        # Create the dialog with elements (after translation) and keep reference
-        # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start:
-            self.first_start = False
+        if self.dlg is not None:
+            return
 
         projet = QgsProject.instance()
         if len(projet.mapLayers()) <= 0:
@@ -443,7 +467,7 @@ class AssistantListe:
         # show the dialog
         self.dlg = ListeDialog()
         self.dlg.setParent(self.iface.mainWindow())
-        self.dlg.setWindowFlags(Qt.Dialog | Qt.WindowCloseButtonHint)
+        self.dlg.setWindowFlags(Dialog | WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
         # ===========slot===============
@@ -483,11 +507,14 @@ class AssistantListe:
 
         # Run the dialog event loop
         self.dlg.show()
-        result = self.dlg.exec_()
+        result = self.dlg.exec()
         if not result:
             # on deconnecte le signal en quittant
             try:
                 self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
             except TypeError:
                 pass  # aucune connexion existante
+
+        # on réinitialise pour gere le rechargement si une seule instance
+        self.dlg = None
 
