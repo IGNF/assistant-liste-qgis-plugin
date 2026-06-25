@@ -343,9 +343,9 @@ class DialogListe(QObject):
                 dlg.dialog.activateWindow()
                 return
 
-        self.dialog = QDialog()
+        self.dialog = QDialog(self.parent.dlg)
         loadUi(os.path.join(os.path.dirname(__file__), "liste.ui"), self.dialog)
-        self.dialog.setWindowFlags(WindowCloseButtonHint | WindowStaysOnTopHint)
+        self.dialog.setWindowFlags(Dialog |WindowCloseButtonHint | WindowStaysOnTopHint)
 
         # slot
         self.dialog.pushButtonOpenTableAttribut.clicked.connect(lambda :self.on_open_table_attribut(ligne ="All"))

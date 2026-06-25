@@ -465,8 +465,8 @@ class AssistantListe:
             os.makedirs(get_dossier_listes())
 
         # show the dialog
-        self.dlg = ListeDialog()
-        self.dlg.setParent(self.iface.mainWindow())
+        self.dlg = ListeDialog(self.iface.mainWindow())
+        # self.dlg.setParent(self.iface.mainWindow())
         self.dlg.setWindowFlags(Dialog | WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
