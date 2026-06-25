@@ -23,6 +23,7 @@
 """
 import shutil
 
+from PyQt5.QtCore import QSettings, QPoint, QSize
 from qgis.PyQt.QtGui import QColor, QFont
 from qgis.PyQt.QtWidgets import QTableWidgetItem, QTableWidget, QFileDialog, QApplication, QInputDialog
 import os.path
@@ -452,6 +453,38 @@ class AssistantListe:
     def unload(self):
         pass
 
+    def sauve_position_dial(self):
+        settings = QSettings(QSettings.NativeFormat, QSettings.UserScope,
+                             "IGN", TITRE)
+        print(settings.fileName())
+        settings.setValue("position", self.dlg.pos())
+        settings.setValue("taille", self.dlg.size())
+        print(f"enregistrement position dans base de registre : pos-size = {self.dlg.pos()}-{self.dlg.size()}")
+
+    def restore_position_dial(self):
+        settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
+        pos = settings.value("position", type=QPoint)
+        size = settings.value("taille", type=QSize)
+        if pos is None:
+            return
+        screens = QApplication.screens()
+        multi = len(screens) > 1
+        # Vérifie si la position est sur un des écrans
+        on_screen = any(screen.geometry().contains(pos) for screen in screens)
+        if on_screen:
+            self.dlg.move(pos)
+            if size:
+                self.dlg.resize(size)
+        else:
+            # Si un seul écran → replacer en haut-gauche
+            if not multi:
+                self.dlg.move(QPoint(0, 0))
+            else:
+                # Multi-écran mais position invalide → centrer sur écran principal
+                primary = QApplication.primaryScreen().geometry()
+                center = primary.center()
+                self.dlg.move(center - self.dlg.rect().center())
+
     def run(self):
         if self.dlg is not None:
             return
@@ -469,6 +502,8 @@ class AssistantListe:
         # self.dlg.setParent(self.iface.mainWindow())
         self.dlg.setWindowFlags(Dialog | WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
+
+        self.restore_position_dial()
 
         # ===========slot===============
         self.dlg.pushButtonSuppAllList.clicked.connect(self.on_suppr_all_list)
@@ -509,6 +544,8 @@ class AssistantListe:
         self.dlg.show()
         result = self.dlg.exec()
         if not result:
+            # sauvegarde de la position du dial dans la base de registre
+            self.sauve_position_dial()
             # on deconnecte le signal en quittant
             try:
                 self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
