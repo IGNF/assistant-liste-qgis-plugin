@@ -23,16 +23,17 @@
 """
 import shutil
 
-from PyQt5.QtCore import QSettings, QPoint, QSize
 from qgis.PyQt.QtGui import QColor, QFont
-from qgis.PyQt.QtWidgets import QTableWidgetItem, QTableWidget, QFileDialog, QApplication, QInputDialog
+from qgis.PyQt.QtWidgets import QTableWidgetItem, QFileDialog, QApplication, QInputDialog
 import os.path
 
+from qgis.core import QgsApplication
 
 from .assistant_liste_dialog import ListeDialog
 from .liste_dlg import *
 from .constantes import *
 from .mapping_version import *
+from .window_manager import *
 
 class AssistantListe:
     def __init__(self, iface):
@@ -448,42 +449,65 @@ class AssistantListe:
         dlgAProposDe.exec()
 
     def initGui(self):
-        pass
+        self.iface.projectRead.connect(self.on_project_opened)
+        # événement fermeture de qgis
+        QgsApplication.instance().aboutToQuit.connect(self.fermeture_qgis)
 
     def unload(self):
         pass
 
-    def sauve_position_dial(self):
-        settings = QSettings(QSettings.NativeFormat, QSettings.UserScope,
-                             "IGN", TITRE)
-        print(settings.fileName())
-        settings.setValue("position", self.dlg.pos())
-        settings.setValue("taille", self.dlg.size())
-        print(f"enregistrement position dans base de registre : pos-size = {self.dlg.pos()}-{self.dlg.size()}")
+    def fermeture_qgis(self):
+        sauve_position_dial(self.dlg)
 
-    def restore_position_dial(self):
+    def on_dialog_closed(self):
+        sauve_position_dial(self.dlg)
+        # déconnexion des signaux
+        try:
+            self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
+        except TypeError:
+            pass
+        try:
+            self.iface.currentLayerChanged.disconnect(self.on_actualiserSelection)
+        except TypeError:
+            pass
+        self.dlg = None
+
+    def on_project_opened(self):
         settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
-        pos = settings.value("position", type=QPoint)
-        size = settings.value("taille", type=QSize)
-        if pos is None:
-            return
-        screens = QApplication.screens()
-        multi = len(screens) > 1
-        # Vérifie si la position est sur un des écrans
-        on_screen = any(screen.geometry().contains(pos) for screen in screens)
-        if on_screen:
-            self.dlg.move(pos)
-            if size:
-                self.dlg.resize(size)
-        else:
-            # Si un seul écran → replacer en haut-gauche
-            if not multi:
-                self.dlg.move(QPoint(0, 0))
-            else:
-                # Multi-écran mais position invalide → centrer sur écran principal
-                primary = QApplication.primaryScreen().geometry()
-                center = primary.center()
-                self.dlg.move(center - self.dlg.rect().center())
+        visible = settings.value("visible", False, type=bool)
+        if visible:
+            self.run()
+
+    # def sauve_position_dial(self):
+    #     settings = QSettings(QSettings.NativeFormat, QSettings.UserScope,
+    #                          "IGN", TITRE)
+    #     settings.setValue("position", self.dlg.pos())
+    #     settings.setValue("taille", self.dlg.size())
+    #     settings.setValue("visible", self.dlg.isVisible())
+    #
+    # def restore_position_dial(self):
+    #     settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
+    #     pos = settings.value("position", type=QPoint)
+    #     size = settings.value("taille", type=QSize)
+    #     if pos is None:
+    #         return
+    #     screens = QApplication.screens()
+    #     multi = len(screens) > 1
+    #     # Vérifie si la position est sur un des écrans
+    #     on_screen = any(screen.geometry().contains(pos) for screen in screens)
+    #     if on_screen:
+    #         self.dlg.move(pos)
+    #         if size:
+    #             self.dlg.resize(size)
+    #     else:
+    #         # Si un seul écran → replacer en haut-gauche
+    #         if not multi:
+    #             self.dlg.move(QPoint(0, 0))
+    #         else:
+    #             # Multi-écran mais position invalide → centrer sur écran principal
+    #             primary = QApplication.primaryScreen().geometry()
+    #             center = primary.center()
+    #             self.dlg.move(center - self.dlg.rect().center())
 
     def run(self):
         if self.dlg is not None:
@@ -503,7 +527,10 @@ class AssistantListe:
         self.dlg.setWindowFlags(Dialog | WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
-        self.restore_position_dial()
+        # connection de la fermeture du dialogue
+        self.dlg.finished.connect(self.on_dialog_closed)
+
+        restore_position_dial(self.dlg)
 
         # ===========slot===============
         self.dlg.pushButtonSuppAllList.clicked.connect(self.on_suppr_all_list)
@@ -542,16 +569,4 @@ class AssistantListe:
 
         # Run the dialog event loop
         self.dlg.show()
-        result = self.dlg.exec()
-        if not result:
-            # sauvegarde de la position du dial dans la base de registre
-            self.sauve_position_dial()
-            # on deconnecte le signal en quittant
-            try:
-                self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
-            except TypeError:
-                pass  # aucune connexion existante
-
-        # on réinitialise pour gere le rechargement si une seule instance
-        self.dlg = None
 
