@@ -140,8 +140,9 @@ class DialogListe(QObject):
         for layer_name in self.dico_json.keys():
             project = QgsProject.instance()
             layer = project.mapLayersByName(layer_name)
+            if not layer:
+                return "",[]
             layer = layer[0]
-
             for field in layer.fields():  # fields() retourne un QgsFields
                 liste_champ.add(field.name())
         return layer_name,liste_champ
@@ -329,10 +330,20 @@ class DialogListe(QObject):
         # mettre à jour le compteur dans le parent (TableWidget)
         self.parent.maj_nb_entites(self.nom_liste)
 
+    def is_layer_existe(self, layer_name):
+        layers = QgsProject.instance().mapLayersByName(layer_name)
+        return bool(layers)
+
     def open_liste(self):
         # récuperation des données de la liste sélectionnée
         self.nom_liste = self.parent.get_nom_list_sel()
         self.dico_json = self.parent.get_dico_from_json(self.nom_liste)
+        for layer in self.dico_json.keys():
+            if not self.is_layer_existe(layer):
+                text = (f"Vous voulez afficher des entités de la couche : "
+                        f"<span style='color: red'><b>{layer}</b></span> qui n'existe pas dans le projet QGIS.")
+                QMessageBox.warning(self.parent.dlg,"Avertissement", text)
+                break
 
         # vérifier si la liste est déjà ouverte
         for dlg in self.parent.List_dialogliste:
