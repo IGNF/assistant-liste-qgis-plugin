@@ -1,4 +1,4 @@
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt,QSettings
 from qgis.PyQt.QtWidgets import QTabBar,QMessageBox,QAbstractItemView,QListWidget
 
 # QT6
@@ -28,6 +28,8 @@ try :
     DisplayRole = Qt.ItemDataRole.DisplayRole
     WA_DeleteOnClose = Qt.WidgetAttribute.WA_DeleteOnClose
     NoEditTriggers = QAbstractItemView.EditTrigger.NoEditTriggers
+    NativeFormat = QSettings.Format.NativeFormat
+    UserScope = QSettings.Scope.UserScope
 # QT5
 except :
     Dialog = Qt.Dialog
@@ -55,3 +57,5 @@ except :
     DisplayRole = Qt.DisplayRole
     WA_DeleteOnClose = Qt.WA_DeleteOnClose
     NoEditTriggers = QAbstractItemView.NoEditTriggers
+    NativeFormat = QSettings.NativeFormat
+    UserScope = QSettings.UserScope

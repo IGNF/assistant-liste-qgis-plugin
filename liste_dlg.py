@@ -1,8 +1,8 @@
 import json
-from qgis.PyQt.QtCore import pyqtSignal, QTimer
-from qgis.PyQt.QtWidgets import QMenu, QMessageBox
+from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtWidgets import QMenu
 
-from qgis._core import QgsCoordinateTransform
+from qgis.core import QgsCoordinateTransform
 from qgis.gui import QgsGui
 
 from .fonction import *

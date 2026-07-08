@@ -1,20 +1,20 @@
-from PyQt5.QtCore import QPoint, QSize,QSettings
-from PyQt5.QtWidgets import QApplication
+from qgis.PyQt.QtCore import QPoint, QSize,QSettings
+from qgis.PyQt.QtWidgets import QApplication
 from .constantes import *
+from .mapping_version import *
 
 
 def sauve_position_dial(dlg):
-    settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
+    settings = QSettings(NativeFormat, UserScope, "IGN", TITRE)
     settings.setValue("position", dlg.pos())
     settings.setValue("taille", dlg.size())
     settings.setValue("visible", dlg.isVisible())
 
-
 def restore_position_dial(dlg):
-    settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
+    settings = QSettings(NativeFormat, UserScope, "IGN", TITRE)
     pos = settings.value("position", type=QPoint)
     size = settings.value("taille", type=QSize)
-    if pos is None:
+    if not pos:
         return
     screens = QApplication.screens()
     multi = len(screens) > 1

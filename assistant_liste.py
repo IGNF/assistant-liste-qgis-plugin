@@ -480,41 +480,10 @@ class AssistantListe:
         self.dlg = None
 
     def on_project_opened(self):
-        settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
+        settings = QSettings(NativeFormat, UserScope, "IGN", TITRE)
         visible = settings.value("visible", False, type=bool)
         if visible:
             self.run()
-
-    # def sauve_position_dial(self):
-    #     settings = QSettings(QSettings.NativeFormat, QSettings.UserScope,
-    #                          "IGN", TITRE)
-    #     settings.setValue("position", self.dlg.pos())
-    #     settings.setValue("taille", self.dlg.size())
-    #     settings.setValue("visible", self.dlg.isVisible())
-    #
-    # def restore_position_dial(self):
-    #     settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
-    #     pos = settings.value("position", type=QPoint)
-    #     size = settings.value("taille", type=QSize)
-    #     if pos is None:
-    #         return
-    #     screens = QApplication.screens()
-    #     multi = len(screens) > 1
-    #     # Vérifie si la position est sur un des écrans
-    #     on_screen = any(screen.geometry().contains(pos) for screen in screens)
-    #     if on_screen:
-    #         self.dlg.move(pos)
-    #         if size:
-    #             self.dlg.resize(size)
-    #     else:
-    #         # Si un seul écran → replacer en haut-gauche
-    #         if not multi:
-    #             self.dlg.move(QPoint(0, 0))
-    #         else:
-    #             # Multi-écran mais position invalide → centrer sur écran principal
-    #             primary = QApplication.primaryScreen().geometry()
-    #             center = primary.center()
-    #             self.dlg.move(center - self.dlg.rect().center())
 
     def run(self):
         if self.dlg is not None:
