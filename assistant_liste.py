@@ -23,16 +23,16 @@
 """
 import shutil
 
-from PyQt5.QtCore import QSettings, QPoint, QSize
 from qgis.PyQt.QtGui import QColor, QFont
-from qgis.PyQt.QtWidgets import QTableWidgetItem, QTableWidget, QFileDialog, QApplication, QInputDialog
+from qgis.PyQt.QtWidgets import QTableWidgetItem, QFileDialog, QInputDialog
 import os.path
 
+from qgis.core import QgsApplication
 
 from .assistant_liste_dialog import ListeDialog
 from .liste_dlg import *
-from .constantes import *
 from .mapping_version import *
+from .window_manager import *
 
 class AssistantListe:
     def __init__(self, iface):
@@ -93,15 +93,17 @@ class AssistantListe:
                 # renommer la ligne du tablewidget
                 item.setText(nom_nouveau)
 
-    def creerliste(self,list_selection = False):
+    def creerliste(self,list_selection = False,nom_list = None):
         if list_selection:
             nom = NOM_LISTE_SELECTION
         else:
-            nom = self.dlg.lineEditNewList.text()
-            if nom == "" or nom == NOM_LISTE_SELECTION:
+            nom = nom_list if nom_list is not None else self.dlg.lineEditNewList.text()
+            nom = nom.strip()
+            if not nom or nom == NOM_LISTE_SELECTION:
                 text_warning = "Le nom ne doit pas être vide, ni être \"Sélection\""
                 QMessageBox.warning(self.dlg,"Avertissement",text_warning)
                 return
+
         item_nom = QTableWidgetItem(nom)
 
         # si le nom existe deja -->return
@@ -129,7 +131,7 @@ class AssistantListe:
         self.initjsonlist(nom)
 
         # initialiser la liste "selection"
-        self.on_set_list_from_sel(True)
+        self.update_liste(True)
 
     def get_dico_from_json(self,nom_liste):
         with open(os.path.join(get_dossier_listes(), f"{nom_liste}.json"), "r", encoding="utf-8") as f:
@@ -321,29 +323,34 @@ class AssistantListe:
                 if layer:
                     layer[0].selectByIds(ids)
 
-    def on_set_list_from_sel(self, liste_selection = False):
-        selection_dict = self.get_dico_selection()
-        if liste_selection:
-            nom_list_sel = NOM_LISTE_SELECTION
+    def update_liste(self, selection = False,nom_liste = None, dico_ids = None):
+        if selection:
+            nom = NOM_LISTE_SELECTION
+            entite_dict = self.get_dico_selection()
+        elif nom_liste is not None:
+            nom = nom_liste
+            entite_dict = dico_ids or {}
         else:
-            nom_list_sel = self.get_nom_list_sel()
+            nom = self.get_nom_list_sel()
+            if nom is None:
+                return
+            entite_dict = self.get_dico_selection()
 
-        fichier_json = os.path.join(get_dossier_listes(),f"{nom_list_sel}.json")
+        fichier_json = os.path.join(get_dossier_listes(),f"{nom}.json")
         # écriture du json
         with open(fichier_json, "w", encoding="utf-8") as f:
-            json.dump(selection_dict, f, indent=2, ensure_ascii=False)
+            json.dump(entite_dict, f, indent=2, ensure_ascii=False)
 
-        # ecrire le nombre de selection (nb de ligne du json) dans la 2ieme colonne de la ligne sélectionnée
-        nb_sel = sum(len(ids) for ids in selection_dict.values())
+        # ecrire le nombre d'entités (nb de ligne du json) dans la 2ieme colonne de la ligne sélectionnée
+        nb_sel = sum(len(ids) for ids in entite_dict.values())
         item_nb = QTableWidgetItem(str(nb_sel))
         item_nb.setTextAlignment(AlignCenter)
+        item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
 
-        if liste_selection:
-            self.dlg.tableWidget.setItem(0, 1, item_nb)
-        else:
-            # si on sélectionne bien une liste
-            if self.get_index_list_sel() is not None:
-                self.dlg.tableWidget.setItem(self.get_index_list_sel(), 1, item_nb)
+        items = self.dlg.tableWidget.findItems(nom, MatchExactly)
+        if items:
+            ligne = items[0].row()
+            self.dlg.tableWidget.setItem(ligne, 1, item_nb)
 
     def deselectionne_all(self):
         project = QgsProject.instance()
@@ -362,6 +369,7 @@ class AssistantListe:
 
     def on_creer_newlist(self):
         self.creerliste()
+        # self.creerliste(nom_list="gerome")
 
     def on_importer_liste(self):
         fichiers, _ = QFileDialog.getOpenFileNames(
@@ -428,7 +436,7 @@ class AssistantListe:
             pass
         try:
             # mise à jour de la liste "sélection" à chaque changement de la sélection
-            self.on_set_list_from_sel(True)
+            self.update_liste(True)
 
             # uniquement la liste "sélection"
             for dlg_list_open  in self.List_dialogliste:
@@ -448,42 +456,34 @@ class AssistantListe:
         dlgAProposDe.exec()
 
     def initGui(self):
-        pass
+        self.iface.projectRead.connect(self.on_project_opened)
+        # événement fermeture de qgis
+        QgsApplication.instance().aboutToQuit.connect(self.fermeture_qgis)
 
     def unload(self):
         pass
 
-    def sauve_position_dial(self):
-        settings = QSettings(QSettings.NativeFormat, QSettings.UserScope,
-                             "IGN", TITRE)
-        print(settings.fileName())
-        settings.setValue("position", self.dlg.pos())
-        settings.setValue("taille", self.dlg.size())
-        print(f"enregistrement position dans base de registre : pos-size = {self.dlg.pos()}-{self.dlg.size()}")
+    def fermeture_qgis(self):
+        sauve_position_dial(self.dlg)
 
-    def restore_position_dial(self):
-        settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, "IGN", TITRE)
-        pos = settings.value("position", type=QPoint)
-        size = settings.value("taille", type=QSize)
-        if pos is None:
-            return
-        screens = QApplication.screens()
-        multi = len(screens) > 1
-        # Vérifie si la position est sur un des écrans
-        on_screen = any(screen.geometry().contains(pos) for screen in screens)
-        if on_screen:
-            self.dlg.move(pos)
-            if size:
-                self.dlg.resize(size)
-        else:
-            # Si un seul écran → replacer en haut-gauche
-            if not multi:
-                self.dlg.move(QPoint(0, 0))
-            else:
-                # Multi-écran mais position invalide → centrer sur écran principal
-                primary = QApplication.primaryScreen().geometry()
-                center = primary.center()
-                self.dlg.move(center - self.dlg.rect().center())
+    def on_dialog_closed(self):
+        sauve_position_dial(self.dlg)
+        # déconnexion des signaux
+        try:
+            self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
+        except TypeError:
+            pass
+        try:
+            self.iface.currentLayerChanged.disconnect(self.on_actualiserSelection)
+        except TypeError:
+            pass
+        self.dlg = None
+
+    def on_project_opened(self):
+        settings = QSettings(NativeFormat, UserScope, "IGN", TITRE)
+        visible = settings.value("visible", False, type=bool)
+        if visible:
+            self.run()
 
     def run(self):
         if self.dlg is not None:
@@ -503,14 +503,17 @@ class AssistantListe:
         self.dlg.setWindowFlags(Dialog | WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
-        self.restore_position_dial()
+        # connection de la fermeture du dialogue
+        self.dlg.finished.connect(self.on_dialog_closed)
+
+        restore_position_dial(self.dlg)
 
         # ===========slot===============
         self.dlg.pushButtonSuppAllList.clicked.connect(self.on_suppr_all_list)
         self.dlg.pushButtonSupprEmptyList.clicked.connect(self.on_suppr_list_vide)
         self.dlg.pushButtonSupprListSel.clicked.connect(self.on_suppr_list_sel)
         self.dlg.pushButtonListToSelect.clicked.connect(self.on_set_sel_from_list)
-        self.dlg.pushButtonSelectToList.clicked.connect(self.on_set_list_from_sel)
+        self.dlg.pushButtonSelectToList.clicked.connect(self.update_liste)
         self.dlg.pushButton_importer.clicked.connect(self.on_importer_liste)
         self.dlg.pushButton_exporter.clicked.connect(self.on_exporter_liste)
         # double clic dans une cellule
@@ -542,16 +545,4 @@ class AssistantListe:
 
         # Run the dialog event loop
         self.dlg.show()
-        result = self.dlg.exec()
-        if not result:
-            # sauvegarde de la position du dial dans la base de registre
-            self.sauve_position_dial()
-            # on deconnecte le signal en quittant
-            try:
-                self.iface.mapCanvas().selectionChanged.disconnect(self.on_actualiserSelection)
-            except TypeError:
-                pass  # aucune connexion existante
-
-        # on réinitialise pour gere le rechargement si une seule instance
-        self.dlg = None
 
