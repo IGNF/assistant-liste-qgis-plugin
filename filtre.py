@@ -5,7 +5,7 @@ from qgis.PyQt.QtGui import QStandardItem, QStandardItemModel
 from qgis.PyQt.QtWidgets import QDialog
 from qgis.PyQt.uic import loadUi
 
-from .mapping_version import *
+# from .mapping_version import *
 
 
 class DialogFiltre(QObject):
@@ -21,7 +21,7 @@ class DialogFiltre(QObject):
         entete_colonne = []
         for col in range(self.parent.model.columnCount()):
             if not self.parent.dialog.tableView.isColumnHidden(col):
-                entete_colonne.append(self.parent.model.headerData(col, Horizontal))
+                entete_colonne.append(self.parent.model.headerData(col, Qt.Orientation.Horizontal))
 
         layer,champs = self.parent.get_structure_layer()
         self.model = QStandardItemModel()
@@ -30,12 +30,12 @@ class DialogFiltre(QObject):
             item.setCheckable(True)
             item.setEditable(False)
             if champ in entete_colonne:
-                item.setCheckState(Checked)
+                item.setCheckState(Qt.CheckState.Checked)
             self.model.appendRow(item)
         self.dlg_filtre.listView.setModel(self.model)
 
     def sel_all_colonnes(self):
-        etat = Checked if not self.all_is_checked else Unchecked
+        etat = Qt.CheckState.Checked if not self.all_is_checked else Qt.CheckState.Unchecked
         # if etat == Checked:
         #     self.dlg_filtre.pushButton_sel_all.setText("Rien")
         # else:
@@ -53,7 +53,7 @@ class DialogFiltre(QObject):
         list_checked = []
         for row in range(self.model.rowCount()):
             item = self.model.item(row)
-            if item.checkState() == Unchecked:
+            if item.checkState() == Qt.CheckState.Unchecked:
                 list_checked.append(item.text())
         self.dlg_filtre.close()
         return list_checked
@@ -62,7 +62,7 @@ class DialogFiltre(QObject):
     def open_dialog(self,parent = None):
         self.dlg_filtre = QDialog(parent)
         loadUi(os.path.join(os.path.dirname(__file__), "filtre.ui"), self.dlg_filtre)
-        self.dlg_filtre.setWindowFlags(WindowCloseButtonHint | WindowStaysOnTopHint)
+        self.dlg_filtre.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
         self.dlg_filtre.setWindowTitle("Filtrer les colonnes visibles")
 
         self.dlg_filtre.pushButton_sel_all.setText("Rien")

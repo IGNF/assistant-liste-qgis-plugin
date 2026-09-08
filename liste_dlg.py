@@ -1,6 +1,7 @@
 import json
+
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtWidgets import QMenu
+from qgis.PyQt.QtWidgets import QMenu,QMessageBox
 
 from qgis.core import QgsCoordinateTransform
 from qgis.gui import QgsGui
@@ -164,7 +165,7 @@ class DialogListe(QObject):
         all_rows = []
         # on ne récupère que les champs à partir de la 3ieme colonne (donc sauf "layer et "id")
         champs_entete = [
-                str(self.model.headerData(col, Horizontal, DisplayRole))
+                str(self.model.headerData(col, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole))
                 for col in range(2,self.model.columnCount())
             ]
         # si liste "selection" on vide le tableview avant de remplir (pour éviter les doublons)
@@ -195,28 +196,28 @@ class DialogListe(QObject):
             layer = layers[0]
 
             row_items = [QStandardItem(layer_name)]
-            row_items[0].setFlags(row_items[0].flags() & ~ItemIsEditable)
+            row_items[0].setFlags(row_items[0].flags() & ~Qt.ItemFlag.ItemIsEditable)
 
             for ident in ids_sel:
-                feature = layer.getFeature(ident)
+                feature = layer.getFeature(int(ident))
                 if not feature.isValid():
                     continue
                 row_items = []
                 item_layer = QStandardItem(layer_name)
-                item_layer.setFlags(item_layer.flags() & ~ItemIsEditable)
+                item_layer.setFlags(item_layer.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 row_items.append(item_layer)
                 item_ident = QStandardItem(str(ident))
-                item_ident.setFlags(item_ident.flags() & ~ItemIsEditable)
+                item_ident.setFlags(item_ident.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 row_items.append(item_ident)
                 for champ in champs_entete:
                     # si le champ existe
                     if feature.fields().indexOf(champ) != -1:
                         valeur = feature.attribute(champ)
                         item = QStandardItem("" if valeur is None else str(valeur))
-                        item.setFlags(item.flags() & ~ItemIsEditable)
+                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                     else:
                         item = QStandardItem("")
-                        item.setFlags(item.flags() & ~ItemIsEditable)
+                        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                     row_items.append(item)
                 # ajout de la ligne complète
                 self.model.appendRow(row_items)
@@ -270,7 +271,7 @@ class DialogListe(QObject):
         if not self.model:
             return
         for col in range(self.model.columnCount()):
-            entete = self.model.headerData(col, Horizontal)
+            entete = self.model.headerData(col, Qt.Orientation.Horizontal)
             if entete in self.colonne_filtre:
                 self.dialog.tableView.hideColumn(col)
             else:
@@ -356,7 +357,7 @@ class DialogListe(QObject):
 
         self.dialog = QDialog(self.parent.dlg)
         loadUi(os.path.join(os.path.dirname(__file__), "liste.ui"), self.dialog)
-        self.dialog.setWindowFlags(Dialog |WindowCloseButtonHint | WindowStaysOnTopHint)
+        self.dialog.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
 
         # slot
         self.dialog.pushButtonOpenTableAttribut.clicked.connect(lambda :self.on_open_table_attribut(ligne ="All"))
@@ -364,11 +365,11 @@ class DialogListe(QObject):
         self.dialog.pushButtonHide.clicked.connect(self.on_show_filtre)
 
         # menu contextuel
-        self.dialog.tableView.setContextMenuPolicy(CustomContextMenu)
+        self.dialog.tableView.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.dialog.tableView.customContextMenuRequested.connect(self.on_show_menu_contextuel)
 
         # gestion d'ouverture de plusieurs dialog liste
-        self.dialog.setAttribute(WA_DeleteOnClose)
+        self.dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.dialog.destroyed.connect(lambda _=None, dlg=self: self.parent.List_dialogliste.remove(dlg))
 
         self.dialog.setWindowTitle(self.parent.get_nom_list_sel())

@@ -24,14 +24,13 @@
 import shutil
 
 from qgis.PyQt.QtGui import QColor, QFont
-from qgis.PyQt.QtWidgets import QTableWidgetItem, QFileDialog, QInputDialog
+from qgis.PyQt.QtWidgets import QTableWidgetItem, QFileDialog, QInputDialog,QAbstractItemView
 import os.path
 
 from qgis.core import QgsApplication
 
 from .assistant_liste_dialog import ListeDialog
 from .liste_dlg import *
-from .mapping_version import *
 from .window_manager import *
 
 class AssistantListe:
@@ -54,10 +53,10 @@ class AssistantListe:
         self.dlg.tableWidget.verticalHeader().setDefaultSectionSize(10)
         self.dlg.tableWidget.verticalHeader().setVisible(False)
         # Rendre toutes les cellules non éditables
-        self.dlg.tableWidget.setEditTriggers(NoEditTriggers)
+        self.dlg.tableWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         # menu contextuel
-        self.dlg.tableWidget.setContextMenuPolicy(CustomContextMenu)
+        self.dlg.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.dlg.tableWidget.customContextMenuRequested.connect(self.on_menu_contextuel)
 
     def on_menu_contextuel(self,pos):
@@ -114,8 +113,8 @@ class AssistantListe:
 
         # rendre non sélectionnable la 2ᵉ colonne (nb entités)
         item_nb = QTableWidgetItem("0")
-        item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
-        item_nb.setTextAlignment(AlignCenter)
+        item_nb.setFlags(item_nb.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+        item_nb.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
         if nom == NOM_LISTE_SELECTION:
             nbligne = 0
@@ -207,8 +206,8 @@ class AssistantListe:
             self.nb_elements = sum(len(v) for v in data.values())
             item_nb_sel = QTableWidgetItem(str(self.nb_elements))
             # rendre non sélectionnable la 2ᵉ colonne
-            item_nb_sel.setFlags(item_nb_sel.flags() & ~ItemIsSelectable)
-            item_nb_sel.setTextAlignment(AlignCenter)
+            item_nb_sel.setFlags(item_nb_sel.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+            item_nb_sel.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.dlg.tableWidget.setItem(0, 1, item_nb_sel)
 
     # créer un json vide pour chaque liste crée
@@ -232,8 +231,8 @@ class AssistantListe:
     def on_suppr_all_list(self):
         res = QMessageBox.question(self.dlg, "Attention",
                                    "Voulez vous vraiment supprimer toutes les listes?",
-                                   QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if res == QMessageBox.No:
+                                   QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if res == QMessageBox.StandardButton.No:
             return
 
         # on réinitialise le tablewidget en laissant une ligne --> liste selection --> (1)
@@ -262,7 +261,7 @@ class AssistantListe:
                     os.remove(os.path.join(get_dossier_listes(), fic))
                     # on supprime la ligne du tablewidget
                     nom_sans_ext,ext = os.path.splitext(fic)
-                    item = self.dlg.tableWidget.findItems(nom_sans_ext, MatchExactly)
+                    item = self.dlg.tableWidget.findItems(nom_sans_ext, Qt.MatchFlag.MatchExactly)
                     self.dlg.tableWidget.removeRow(item[0].row())
 
     def on_suppr_list_sel(self):
@@ -297,12 +296,12 @@ class AssistantListe:
                 nb = sum(len(v) for v in data.values())
 
         # chercher la ligne correspondante dans le tableWidget
-        items = self.dlg.tableWidget.findItems(nom_liste, MatchExactly)
+        items = self.dlg.tableWidget.findItems(nom_liste, Qt.MatchFlag.MatchExactly)
         if items:
             ligne = items[0].row()
             item_nb = QTableWidgetItem(str(nb))
-            item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
-            item_nb.setTextAlignment(AlignCenter)
+            item_nb.setFlags(item_nb.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+            item_nb.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.dlg.tableWidget.setItem(ligne, 1, item_nb)
 
     # sélectionne toutes les entités issues de la liste sélectionnée
@@ -344,10 +343,10 @@ class AssistantListe:
         # ecrire le nombre d'entités (nb de ligne du json) dans la 2ieme colonne de la ligne sélectionnée
         nb_sel = sum(len(ids) for ids in entite_dict.values())
         item_nb = QTableWidgetItem(str(nb_sel))
-        item_nb.setTextAlignment(AlignCenter)
-        item_nb.setFlags(item_nb.flags() & ~ItemIsSelectable)
+        item_nb.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        item_nb.setFlags(item_nb.flags() & ~Qt.ItemFlag.ItemIsSelectable)
 
-        items = self.dlg.tableWidget.findItems(nom, MatchExactly)
+        items = self.dlg.tableWidget.findItems(nom, Qt.MatchFlag.MatchExactly)
         if items:
             ligne = items[0].row()
             self.dlg.tableWidget.setItem(ligne, 1, item_nb)
@@ -363,7 +362,7 @@ class AssistantListe:
             return
         ListeEntitesDialog = DialogListe(self)
         self.List_dialogliste.append(ListeEntitesDialog)
-        QApplication.setOverrideCursor(WaitCursor)
+        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         ListeEntitesDialog.open_liste()
         QApplication.restoreOverrideCursor()
 
@@ -414,7 +413,7 @@ class AssistantListe:
         dossier = QFileDialog.getExistingDirectory(
             parent=self.dlg,  # widget parent
             caption=f"Exporter la liste \"{nom_list_sel}\" vers le dossier...",  # titre de la fenêtre
-            options=QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
+            options=QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks
         )
         if dossier:
             nom_liste_destination = os.path.join(dossier, f"{nom_list_sel}.json")
@@ -450,7 +449,7 @@ class AssistantListe:
     def apropos(self):
         dlgAProposDe = QDialog()
         loadUi(os.path.join(os.path.dirname(__file__) , "aproposde.ui"), dlgAProposDe)
-        dlgAProposDe.setWindowFlags(WindowStaysOnTopHint | WindowCloseButtonHint)
+        dlgAProposDe.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
         dlgAProposDe.setWindowTitle(f"{TITRE}")
         dlgAProposDe.pushButtonAffichedoc.clicked.connect(afficheDoc)
         dlgAProposDe.exec()
@@ -480,7 +479,7 @@ class AssistantListe:
         self.dlg = None
 
     def on_project_opened(self):
-        settings = QSettings(NativeFormat, UserScope, "IGN", TITRE)
+        settings = QSettings(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, "IGN", TITRE)
         visible = settings.value("visible", False, type=bool)
         if visible:
             self.run()
@@ -500,7 +499,7 @@ class AssistantListe:
         # show the dialog
         self.dlg = ListeDialog(self.iface.mainWindow())
         # self.dlg.setParent(self.iface.mainWindow())
-        self.dlg.setWindowFlags(Dialog | WindowCloseButtonHint)
+        self.dlg.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
         # connection de la fermeture du dialogue

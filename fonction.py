@@ -5,7 +5,6 @@ from qgis.PyQt.QtCore import QTimer, Qt
 from qgis._gui import QgsHighlight
 from qgis.core import QgsVectorLayer,QgsProject,QgsExpression, QgsFeatureRequest
 from .constantes import *
-from .mapping_version import *
 
 
 def afficheDoc():
@@ -95,7 +94,7 @@ def clignoter_feature(layer, feature, canvas, duree=1000, intervalle=300):
     intervalle : intervalle entre visible/invisible en ms
     """
     highlight = QgsHighlight(canvas, feature.geometry(), layer)
-    highlight.setColor(red)
+    highlight.setColor(Qt.GlobalColor.red)
     highlight.setWidth(3)
 
     # pour clignoter
