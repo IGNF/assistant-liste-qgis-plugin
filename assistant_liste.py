@@ -194,9 +194,14 @@ class AssistantListe:
             # on ajoute pas une 2ieme fois la liste sélection (deja fait avec creerliste(True))
             if nom_sans_ext == NOM_LISTE_SELECTION:
                 continue
+
+            # Ajouter la ligne à la fin
+            ligne = self.dlg.tableWidget.rowCount()
+            self.dlg.tableWidget.insertRow(ligne)
+
             item_fic = QTableWidgetItem(nom_sans_ext)
-            self.dlg.tableWidget.insertRow(0)
-            self.dlg.tableWidget.setItem(0, 0, item_fic)
+            self.dlg.tableWidget.setItem(ligne, 0, item_fic)
+
 
             # Charger le fichier
             with open(os.path.join(get_dossier_listes(),fic), "r", encoding="utf-8") as f:
@@ -208,7 +213,7 @@ class AssistantListe:
             # rendre non sélectionnable la 2ᵉ colonne
             item_nb_sel.setFlags(item_nb_sel.flags() & ~Qt.ItemFlag.ItemIsSelectable)
             item_nb_sel.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.dlg.tableWidget.setItem(0, 1, item_nb_sel)
+            self.dlg.tableWidget.setItem(ligne, 1, item_nb_sel)
 
     # créer un json vide pour chaque liste crée
     def initjsonlist(self,nom_list):
@@ -383,6 +388,9 @@ class AssistantListe:
                 nom_liste_destination = os.path.join(get_dossier_listes(), os.path.basename(fic))
                 shutil.copy2(fic, nom_liste_destination)
 
+        self.actualiser_tablewidget()
+
+
     def on_exporter_liste(self):
         nom_list_sel = self.get_nom_list_sel()
         if nom_list_sel is None:
@@ -423,6 +431,47 @@ class AssistantListe:
         # on supprime le json temporaire cas des exports en clés absolues
         if os.path.exists(fichier_temp):
             os.remove(fichier_temp)
+
+    def actualiser_tablewidget(self):
+        """Actualise le contenu du tableWidget à partir des fichiers JSON."""
+
+        self.dlg.tableWidget.setRowCount(0)
+
+        # S'assurer que la liste "Sélection" existe
+        fichier_selection = os.path.join(
+            get_dossier_listes(),
+            f"{NOM_LISTE_SELECTION}.json"
+        )
+
+        if not os.path.exists(fichier_selection):
+            self.initjsonlist(NOM_LISTE_SELECTION)
+
+        # Ajouter "Sélection" en première ligne
+        data = self.get_dico_from_json(NOM_LISTE_SELECTION)
+        nb = sum(len(v) for v in data.values())
+
+        self.dlg.tableWidget.insertRow(0)
+
+        item_nom = QTableWidgetItem(NOM_LISTE_SELECTION)
+        item_nb = QTableWidgetItem(str(nb))
+
+        item_nb.setFlags(
+            item_nb.flags() & ~Qt.ItemFlag.ItemIsSelectable
+        )
+        item_nb.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.dlg.tableWidget.setItem(0, 0, item_nom)
+        self.dlg.tableWidget.setItem(0, 1, item_nb)
+
+        # Mise en forme de "Sélection"
+        item_nom.setBackground(QColor(255, 255, 150))
+
+        font = QFont()
+        font.setBold(True)
+        item_nom.setFont(font)
+
+        # Ajouter toutes les autres listes
+        self.set_tablewidget_from_all_json()
 
     def on_actualiserSelection(self):
         if not self.dlg.isVisible():
@@ -498,7 +547,6 @@ class AssistantListe:
 
         # show the dialog
         self.dlg = ListeDialog(self.iface.mainWindow())
-        # self.dlg.setParent(self.iface.mainWindow())
         self.dlg.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
         self.dlg.setWindowTitle(TITRE)
 
@@ -523,17 +571,7 @@ class AssistantListe:
         # ====================================
 
         self.inittablewidget()
-        self.set_tablewidget_from_all_json()
-        # creation de la liste "Sélection"
-        # a faire APRES self.set_tablewidget_from_all_json()
-        # sinon creation d'une ligne vide
-        self.creerliste(True)
-        # mettre le fond en couleur pour le différencier des autres
-        item = self.dlg.tableWidget.item(0, 0)
-        item.setBackground(QColor(255, 255, 150))
-        font = QFont()
-        font.setBold(True)
-        item.setFont(font)
+        self.actualiser_tablewidget()
 
         # événement de changement de selection pour actualiser la selection des QCombobox
         try:

@@ -72,7 +72,7 @@ class DialogListe(QObject):
         # ================================
         # suppression d'une ligne
         if action == enlever_ligne:
-            # supprime la ligne sélectionnée et réécrit le json , TOUTES listes sélectionnées
+            # supprime la ligne sélectionnée et réécrit le json, TOUTES listes sélectionnées
             self.remove_ligne()
 
         # ================================
@@ -150,25 +150,24 @@ class DialogListe(QObject):
 
     def is_dico_cles_absolue(self,dico):
         values = dico.values()
-        # vérifier que chaque sous-liste contient uniquement des int → liste d'identifiants)
+        # vérifier que chaque sous-liste contient uniquement des int → liste d'identifiants
         if all(all(isinstance(item, int) for item in sublist) for sublist in values):
             return False
-        # vérifier que chaque sous-liste contient uniquement des str → clés absolues)
+        # vérifier que chaque sous-liste contient uniquement des str → clés absolues
         elif all(all(isinstance(item, str) for item in sublist) for sublist in values):
             return True
         else:
             return None
 
 
-
+    # charge dans le tableview les entités de la liste sélectionnée
     def get_sel_in_list(self):
-        all_rows = []
-        # on ne récupère que les champs à partir de la 3ieme colonne (donc sauf "layer et "id")
+        # on ne récupère que les champs à partir de la 3ᵉ colonne (donc sauf "layer et "id")
         champs_entete = [
                 str(self.model.headerData(col, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole))
                 for col in range(2,self.model.columnCount())
             ]
-        # si liste "selection" on vide le tableview avant de remplir (pour éviter les doublons)
+        # si liste "selection" on vide le tableview avant de remplir (pour éviter les doublons).
         if self.nom_liste == NOM_LISTE_SELECTION:
             self.model.removeRows(0, self.model.rowCount())
 
@@ -198,8 +197,11 @@ class DialogListe(QObject):
             row_items = [QStandardItem(layer_name)]
             row_items[0].setFlags(row_items[0].flags() & ~Qt.ItemFlag.ItemIsEditable)
 
+            # ATTENTION: ici ident est une cleabs
             for ident in ids_sel:
-                feature = layer.getFeature(int(ident))
+                ids = get_ids_from_cleabs(layer, [ident]) if res else [ident]
+                # feature = layer.getFeature(int(ident))
+                feature = layer.getFeature(int(ids[0]))
                 if not feature.isValid():
                     continue
                 row_items = []
@@ -307,7 +309,7 @@ class DialogListe(QObject):
                 if e_layer == row_layer and int(e.get("id", 0)) == row_id:
                     self.model.removeRow(ligne)
 
-                    # si c'est la liste sélection on désélectionne la ligne
+                    # si c'est la liste sélection, on désélectionne la ligne
                     if self.nom_liste == NOM_LISTE_SELECTION:
                         layers = QgsProject.instance().mapLayersByName(row_layer)
                         layer = layers[0]
@@ -349,7 +351,7 @@ class DialogListe(QObject):
         # vérifier si la liste est déjà ouverte
         for dlg in self.parent.List_dialogliste:
             if dlg.nom_liste == self.nom_liste and dlg.dialog is not None and dlg.dialog.isVisible():
-                # passe la fenetre en premier plan
+                # passe la fenêtre en premier plan
                 dlg.dialog.raise_()
                 # donne le focus
                 dlg.dialog.activateWindow()
