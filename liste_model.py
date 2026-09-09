@@ -14,7 +14,7 @@ class ListeModel(QStandardItemModel):
         for lig in lignes:
             row_data = {}
             for col in range(self.columnCount()):
-                header = self.headerData(col, Horizontal)
+                header = self.headerData(col, Qt.Orientation.Horizontal)
                 item = self.item(lig, col)
                 row_data[header] = item.text() if item else ""
             data.append(row_data)
@@ -59,13 +59,13 @@ class ListeModel(QStandardItemModel):
 
         # =============================================
         # Colonnes actuelles du modèle
-        headers = [self.dlg.model.headerData(c, Horizontal) for c in range(self.columnCount())]
+        headers = [self.dlg.model.headerData(c, Qt.Orientation.Horizontal) for c in range(self.columnCount())]
 
         # Ajouter de nouvelles colonnes si nécessaire
         for key in ligne_complete.keys():
             if key not in headers:
                 self.setColumnCount(self.columnCount() + 1)
-                self.setHeaderData(self.columnCount() - 1, Horizontal, key)
+                self.setHeaderData(self.columnCount() - 1, Qt.Orientation.Horizontal, key)
                 headers.append(key)
         # ============================================
 

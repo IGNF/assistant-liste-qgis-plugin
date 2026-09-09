@@ -10,7 +10,7 @@
 style="width:1.38681in;height:1.47153in"
 alt="logo_IGN_pour_lettre" /></td>
 <td style="font-size: 24px;text-align: center;"><p><strong>Manuel utilisateur du plugin
-« Assistant listes »</strong></p>
+« IGN Assistant liste »</strong></p>
 </td>
 </tr>
 <tr>
@@ -36,8 +36,7 @@ alt="logo_IGN_pour_lettre" /></td>
 
 - [6. Ajout d’éléments dans une liste](#ajout-delements-dans-une-liste)
 
-	- [6.1 Via : <img src="images/image4.png"
-style="width:0.67847in;height:0.18264in" />](#via)
+	- [6.1 Via : <img src="images/image4.png" style="width:0.67847in;height:0.18264in" />](#via)
 
 	- [6.2 Via : « glissé & déposé »](#via-glisse-dépose)
 
@@ -60,10 +59,11 @@ style="width:0.67847in;height:0.18264in" />](#via)
   <h2 id="prerequis" style="color: white;margin:0;" >1. Prérequis</h2>
 </div>
 
-Version de QGIS : 3.40 ou supérieur.
+Version de QGIS : 3.44 ou supérieur.
 
-Le plugin « maitre » doit préalablement être installé : 
-[maitre-qgis-plugin sur GitHub](https://github.com/IGNF/maitre-qgis-plugin)
+Le plugin « PluginsManager » doit préalablement être installé : 
+[
+PluginsManager-qgis-plugin sur GitHub](https://github.com/IGNF/maitre-qgis-plugin)
 
 <div  style="background-color: #00ADC5; border: 1px solid black; padding: 5px; text-align: justify;margin-bottom:10px;">
   <h2 id="resume" style="color: white;margin:0;" >2. Résumé</h2>
